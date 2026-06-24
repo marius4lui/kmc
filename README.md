@@ -53,6 +53,14 @@ Then use the menu to:
 
 Use the arrow keys to move through the menu and press Enter to select. Press Esc to go back from nested screens.
 
+On interactive starts, `kmc` checks npm for the latest published version. If a newer version is available, you can choose **Update now** to run:
+
+```sh
+npm install -g @marius4lui/kmc@latest
+```
+
+or choose **Skip** to continue with the current version for that run.
+
 ## Direct Commands
 
 The interactive menu is the default, but `kmc` can also be controlled directly:

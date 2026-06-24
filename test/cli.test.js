@@ -108,3 +108,13 @@ test("custom groups display by label", async () => {
 
   assert.equal(groupDisplayLabel(config, "my-tools"), "My Tools");
 });
+
+test("detects newer package versions", async () => {
+  const { compareVersions, isNewerVersion } = await import("../lib/update.js");
+
+  assert.equal(compareVersions("1.0.3", "1.0.4"), 1);
+  assert.equal(compareVersions("1.0.3", "1.0.3"), 0);
+  assert.equal(compareVersions("1.0.4", "1.0.3"), -1);
+  assert.equal(isNewerVersion("1.0.3", "1.0.4"), true);
+  assert.equal(isNewerVersion("1.0.3", "1.0.3"), false);
+});
