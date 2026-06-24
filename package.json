@@ -1,0 +1,34 @@
+{
+  "name": "kmc",
+  "version": "1.0.0",
+  "description": "A tiny command launcher for project scripts defined in kmc.json.",
+  "type": "module",
+  "bin": {
+    "kmc": "bin/kmc.js"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "LICENSE",
+    "schema.json"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "start": "node ./bin/kmc.js"
+  },
+  "keywords": [
+    "cli",
+    "commands",
+    "scripts",
+    "launcher",
+    "terminal"
+  ],
+  "author": "Marius",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.5.2"
+  }
+}
