@@ -28,6 +28,18 @@
           },
           "cwd": {
             "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "imported": {
+            "type": "boolean"
           }
         }
       },

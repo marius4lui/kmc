@@ -49,9 +49,58 @@ Then use the menu to:
 - add a new command
 - edit an existing command
 - delete a command
+- import detected project commands
+- adjust local settings
 - quit
 
-Use the arrow keys to move through the menu and press Enter to select.
+Use the arrow keys to move through the menu and press Enter to select. Press Esc to go back from nested screens.
+
+## Direct Commands
+
+The interactive menu is the default, but `kmc` can also be controlled directly:
+
+```sh
+kmc
+kmc run deploy
+kmc run manual.deploy
+kmc run npm.dev
+kmc add
+kmc edit deploy
+kmc delete deploy
+kmc import
+kmc validate
+kmc settings
+```
+
+Direct commands are useful for power users, scripts, and CI.
+
+## Import
+
+`kmc import` opens an import screen. Detected sources are preselected, missing sources are shown as unavailable, and checkbox selection uses Space to toggle plus Enter to confirm.
+
+| Source | Group |
+| --- | --- |
+| `package.json` | NPM Scripts |
+| `Makefile` | Make Commands |
+| `pubspec.yaml` | Flutter Commands |
+| `docker-compose.yml` / `compose.yml` | Docker Commands |
+
+Imported commands are not mixed into one flat menu. The run flow is grouped:
+
+```text
+Run command
+├─ Manual Commands
+├─ NPM Scripts
+├─ Make Commands
+├─ Flutter Commands
+└─ Docker Commands
+```
+
+Manual commands are kept when importing. Previously imported commands are refreshed from their source files.
+
+## Validate
+
+`kmc validate` prints a readable report. It shows each check, what was checked, whether it passed, and a final summary. In the interactive menu the report waits for one Enter confirmation before returning.
 
 ## `kmc.json`
 
@@ -65,15 +114,23 @@ You normally manage this file through the CLI, but it is plain JSON and can be e
   "commands": [
     {
       "name": "deploy",
+      "id": "manual.deploy",
       "command": "python deploy.py",
       "description": "Deploy this project",
-      "cwd": "."
+      "cwd": ".",
+      "group": "manual",
+      "source": "manual",
+      "imported": false
     },
     {
       "name": "dev",
+      "id": "npm.dev",
       "command": "npm run dev",
       "description": "Start the development server",
-      "cwd": "."
+      "cwd": ".",
+      "group": "npm",
+      "source": "package.json",
+      "imported": true
     }
   ]
 }
@@ -87,6 +144,34 @@ You normally manage this file through the CLI, but it is plain JSON and can be e
 | `command` | yes | Shell command to execute. |
 | `description` | no | Text shown next to the command in the menu. |
 | `cwd` | no | Working directory relative to the folder where `kmc` was started. Defaults to `.`. |
+| `id` | no | Stable id. Defaults to `<group>.<name>`. |
+| `group` | no | Command group. Defaults to `manual`. |
+| `source` | no | Source file or `manual`. |
+| `imported` | no | Whether the command was generated from a project file. |
+
+## Settings
+
+Local user settings are stored in:
+
+```text
+.kmc/settings.json
+```
+
+`kmc` automatically adds `.kmc/` to `.gitignore` when settings are written, so each user can keep their own behavior without changing the team setup.
+
+Example:
+
+```json
+{
+  "defaultGroup": "npm",
+  "lastSelectedGroup": "manual",
+  "hiddenGroups": ["flutter"],
+  "favoriteCommands": ["npm.dev", "manual.deploy"],
+  "maxFavoriteCommands": 3
+}
+```
+
+Favorites are selected in settings with Space and confirmed with Enter. The default maximum is `3`, and you can change it in settings.
 
 ## Examples
 
