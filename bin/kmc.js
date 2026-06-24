@@ -30,7 +30,7 @@ async function readConfig() {
   const configPath = path.join(process.cwd(), CONFIG_FILE);
   if (!existsSync(configPath)) {
     return {
-      "$schema": "https://raw.githubusercontent.com/marius/kmc/main/schema.json",
+      "$schema": "https://raw.githubusercontent.com/marius4lui/kmc/main/schema.json",
       commands: []
     };
   }

@@ -1,7 +1,7 @@
 {
-  "name": "kmc",
+  "name": "@marius4lui/kmc",
   "version": "1.0.0",
-  "description": "A tiny command launcher for project scripts defined in kmc.json.",
+  "description": "Interactive command launcher for project scripts stored in kmc.json.",
   "type": "module",
   "bin": {
     "kmc": "bin/kmc.js"
@@ -18,13 +18,23 @@
   },
   "keywords": [
     "cli",
+    "interactive-cli",
     "commands",
     "scripts",
     "launcher",
-    "terminal"
+    "terminal",
+    "task-runner"
   ],
   "author": "Marius",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marius4lui/kmc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marius4lui/kmc/issues"
+  },
+  "homepage": "https://github.com/marius4lui/kmc#readme",
   "engines": {
     "node": ">=18"
   },
