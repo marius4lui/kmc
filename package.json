@@ -1,6 +1,6 @@
 {
   "name": "@marius4lui/kmc",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Interactive command launcher for project scripts stored in kmc.json.",
   "type": "module",
   "bin": {
@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "test": "node --test",
-    "start": "node ./bin/kmc.js"
+    "start": "node ./bin/kmc.js",
+    "prepublishOnly": "npm test && npm pack --dry-run"
   },
   "keywords": [
     "cli",
