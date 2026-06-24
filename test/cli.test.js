@@ -47,12 +47,14 @@ test("imports package scripts into the npm group", async () => {
   const config = JSON.parse(await readFile(path.join(cwd, "kmc.json"), "utf8"));
 
   assert.match(stdout, /Imported 2 commands/);
+  assert.equal(config.groups[0].id, "npm");
+  assert.equal(config.groups[0].label, "NPM Scripts");
+  assert.equal(config.groups[0].type, "imported");
   assert.deepEqual(
-    config.commands.map((command) => command.id).sort(),
+    config.groups[0].commands.map((command) => command.id).sort(),
     ["npm.dev", "npm.test"]
   );
-  assert.equal(config.commands[0].group, "npm");
-  assert.equal(config.commands[0].source, "package.json");
+  assert.equal(config.groups[0].commands[0].source, "package.json");
 });
 
 test("validates grouped config", async () => {
@@ -61,12 +63,18 @@ test("validates grouped config", async () => {
     path.join(cwd, "kmc.json"),
     JSON.stringify(
       {
-        commands: [
+        groups: [
           {
-            id: "manual.deploy",
-            name: "deploy",
-            command: "echo deploy",
-            group: "manual"
+            id: "deployment",
+            label: "Deployment",
+            type: "manual",
+            commands: [
+              {
+                id: "deployment.deploy",
+                name: "deploy",
+                command: "echo deploy"
+              }
+            ]
           }
         ]
       },

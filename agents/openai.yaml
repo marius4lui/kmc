@@ -1,0 +1,4 @@
+interface:
+  display_name: "kmc"
+  short_description: "Use kmc project command centers"
+  default_prompt: "Use $kmc to inspect, validate, import, or run this repository's saved project commands."

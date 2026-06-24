@@ -1,12 +1,14 @@
 {
   "name": "@marius4lui/kmc",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Interactive command launcher for project scripts stored in kmc.json.",
   "type": "module",
   "bin": {
     "kmc": "bin/kmc.js"
   },
   "files": [
+    "SKILL.md",
+    "agents",
     "bin",
     "lib",
     "README.md",

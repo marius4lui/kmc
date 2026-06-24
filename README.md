@@ -46,11 +46,9 @@ kmc
 Then use the menu to:
 
 - run a saved command
-- add a new command
-- edit an existing command
-- delete a command
+- manage manual commands
 - import detected project commands
-- adjust local settings
+- adjust local preferences
 - quit
 
 Use the arrow keys to move through the menu and press Enter to select. Press Esc to go back from nested screens.
@@ -88,12 +86,12 @@ Direct commands are useful for power users, scripts, and CI.
 Imported commands are not mixed into one flat menu. The run flow is grouped:
 
 ```text
-Run command
+Run
 ├─ Manual Commands
 ├─ NPM Scripts
 ├─ Make Commands
-├─ Flutter Commands
-└─ Docker Commands
+├─ Flutter
+└─ Docker
 ```
 
 Manual commands are kept when importing. Previously imported commands are refreshed from their source files.
@@ -104,50 +102,88 @@ Manual commands are kept when importing. Previously imported commands are refres
 
 ## `kmc.json`
 
-Commands are stored in `kmc.json` in the current working directory.
+Groups and commands are stored in `kmc.json` in the current working directory. Groups are the central organization layer in kmc.
 
 You normally manage this file through the CLI, but it is plain JSON and can be edited manually:
 
 ```json
 {
   "$schema": "https://github.com/marius4lui/kmc/blob/main/schema.json",
-  "commands": [
+  "groups": [
     {
-      "name": "deploy",
-      "id": "manual.deploy",
-      "command": "python deploy.py",
-      "description": "Deploy this project",
-      "cwd": ".",
-      "group": "manual",
-      "source": "manual",
-      "imported": false
+      "id": "deployment",
+      "label": "Deployment",
+      "description": "Release and deployment commands",
+      "icon": "",
+      "type": "manual",
+      "commands": [
+        {
+          "id": "deployment.production",
+          "name": "production",
+          "command": "python deploy.py",
+          "description": "Deploy production",
+          "cwd": ".",
+          "source": "manual",
+          "imported": false
+        }
+      ]
     },
     {
-      "name": "dev",
-      "id": "npm.dev",
-      "command": "npm run dev",
-      "description": "Start the development server",
-      "cwd": ".",
-      "group": "npm",
+      "id": "npm",
+      "label": "NPM Scripts",
+      "description": "Commands imported from package.json",
+      "icon": "",
+      "type": "imported",
       "source": "package.json",
-      "imported": true
+      "commands": [
+        {
+          "id": "npm.dev",
+          "name": "dev",
+          "command": "npm run dev",
+          "description": "Start the development server",
+          "cwd": ".",
+          "source": "package.json",
+          "imported": true
+        }
+      ]
     }
   ]
 }
 ```
 
-### Fields
+Legacy flat `commands` files are still read and migrated when kmc writes the config again.
+
+### Group Fields
 
 | Field | Required | Description |
 | --- | --- | --- |
+| `id` | yes | Technical group id, used in command paths. |
+| `label` | yes | Display name. |
+| `description` | no | Optional group description. |
+| `icon` | no | Optional display symbol. |
+| `type` | yes | `manual`, `imported`, or `skill`. |
+| `source` | no | Source file for imported groups. |
+| `commands` | yes | Commands contained in the group. |
+
+### Command Fields
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `id` | no | Stable command id. Defaults to `<group>.<name>`. |
 | `name` | yes | Short name shown in the menu. |
 | `command` | yes | Shell command to execute. |
 | `description` | no | Text shown next to the command in the menu. |
 | `cwd` | no | Working directory relative to the folder where `kmc` was started. Defaults to `.`. |
-| `id` | no | Stable id. Defaults to `<group>.<name>`. |
-| `group` | no | Command group. Defaults to `manual`. |
 | `source` | no | Source file or `manual`. |
 | `imported` | no | Whether the command was generated from a project file. |
+
+Command paths are stable:
+
+```sh
+kmc run deployment.production
+kmc run npm.build
+kmc run flutter.run
+```
 
 ## Settings
 
@@ -165,13 +201,32 @@ Example:
 {
   "defaultGroup": "npm",
   "lastSelectedGroup": "manual",
+  "favoriteGroups": ["development", "deployment"],
   "hiddenGroups": ["flutter"],
   "favoriteCommands": ["npm.dev", "manual.deploy"],
   "maxFavoriteCommands": 3
 }
 ```
 
-Favorites are selected in settings with Space and confirmed with Enter. The default maximum is `3`, and you can change it in settings.
+Favorite groups and favorite commands are selected in settings with Space and confirmed with Enter. The default maximum for favorite commands is `3`, and you can change it in settings.
+
+### Agent Skill
+
+`kmc` also ships an agent skill so AI coding agents can understand and use the command center in a repository.
+
+Open:
+
+```sh
+kmc settings
+```
+
+Then choose **Install kmc skill**. The CLI runs:
+
+```sh
+npx skills add marius4lui/kmc
+```
+
+After installation, agents can invoke the skill as `$kmc`.
 
 ## Examples
 
@@ -179,10 +234,18 @@ Favorites are selected in settings with Space and confirmed with Enter. The defa
 
 ```json
 {
-  "name": "deploy",
-  "command": "python deploy.py",
-  "description": "Deploy production",
-  "cwd": "."
+  "id": "deployment",
+  "label": "Deployment",
+  "type": "manual",
+  "commands": [
+    {
+      "id": "deployment.production",
+      "name": "production",
+      "command": "python deploy.py",
+      "description": "Deploy production",
+      "cwd": "."
+    }
+  ]
 }
 ```
 
@@ -190,10 +253,18 @@ Favorites are selected in settings with Space and confirmed with Enter. The defa
 
 ```json
 {
-  "name": "dev",
-  "command": "npm run dev",
-  "description": "Start local app",
-  "cwd": "."
+  "id": "development",
+  "label": "Development",
+  "type": "manual",
+  "commands": [
+    {
+      "id": "development.dev",
+      "name": "dev",
+      "command": "npm run dev",
+      "description": "Start local app",
+      "cwd": "."
+    }
+  ]
 }
 ```
 
@@ -201,10 +272,18 @@ Favorites are selected in settings with Space and confirmed with Enter. The defa
 
 ```json
 {
-  "name": "migrate",
-  "command": "python manage.py migrate",
-  "description": "Run database migrations",
-  "cwd": "backend"
+  "id": "database",
+  "label": "Database",
+  "type": "manual",
+  "commands": [
+    {
+      "id": "database.migrate",
+      "name": "migrate",
+      "command": "python manage.py migrate",
+      "description": "Run database migrations",
+      "cwd": "backend"
+    }
+  ]
 }
 ```
 

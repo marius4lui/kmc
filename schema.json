@@ -8,43 +8,94 @@
     "$schema": {
       "type": "string"
     },
-    "commands": {
+    "groups": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["name", "command"],
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "command": {
-            "type": "string",
-            "minLength": 1
-          },
-          "description": {
-            "type": "string"
-          },
-          "cwd": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "group": {
-            "type": "string"
-          },
-          "source": {
-            "type": "string"
-          },
-          "imported": {
-            "type": "boolean"
-          }
-        }
+        "$ref": "#/$defs/group"
       },
       "default": []
+    },
+    "commands": {
+      "description": "Legacy flat command list. kmc migrates this to groups automatically.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/command"
+      }
     }
   },
-  "required": ["commands"]
+  "anyOf": [
+    {
+      "required": ["groups"]
+    },
+    {
+      "required": ["commands"]
+    }
+  ],
+  "$defs": {
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "type", "commands"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["manual", "imported", "skill"]
+        },
+        "source": {
+          "type": "string"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/command"
+          },
+          "default": []
+        }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "command"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "cwd": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "imported": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
 }
