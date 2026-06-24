@@ -92,3 +92,19 @@ test("validates grouped config", async () => {
   assert.match(stdout, /Everything looks okay/);
   assert.match(stdout, /1 command configured/);
 });
+
+test("custom groups display by label", async () => {
+  const { groupDisplayLabel } = await import("../lib/ui.js");
+  const config = {
+    groups: [
+      {
+        id: "my-tools",
+        label: "My Tools",
+        type: "manual",
+        commands: [{ id: "my-tools.dev", name: "dev", command: "echo dev" }]
+      }
+    ]
+  };
+
+  assert.equal(groupDisplayLabel(config, "my-tools"), "My Tools");
+});
