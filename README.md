@@ -61,7 +61,7 @@ You normally manage this file through the CLI, but it is plain JSON and can be e
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/marius4lui/kmc/main/schema.json",
+  "$schema": "https://github.com/marius4lui/kmc/blob/main/schema.json",
   "commands": [
     {
       "name": "deploy",

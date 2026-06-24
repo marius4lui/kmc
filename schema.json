@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/marius4lui/kmc/main/schema.json",
+  "$id": "https://github.com/marius4lui/kmc/blob/main/schema.json",
   "title": "kmc configuration",
   "type": "object",
   "additionalProperties": false,
