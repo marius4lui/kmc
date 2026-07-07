@@ -6,6 +6,9 @@
   "bin": {
     "kmc": "bin/kmc.js"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "SKILL.md",
     "agents",

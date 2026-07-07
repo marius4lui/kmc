@@ -204,6 +204,13 @@ test("stores a nested dev URL project root", async () => {
   assert.equal(config.name, "web");
 });
 
+test("derives unique dev URL names from detected monorepo project paths", async () => {
+  const { projectDevName } = await import("../lib/dev-config.js");
+
+  assert.equal(projectDevName({ name: "apps/web/landing" }, "/repo/apps/web/landing"), "apps-web-landing");
+  assert.equal(projectDevName({ name: "apps/web/dashboard" }, "/repo/apps/web/dashboard"), "apps-web-dashboard");
+});
+
 test("explains how to install caddy when reload cannot spawn it", async () => {
   const { caddyErrorMessage } = await import("../lib/caddy.js");
 
