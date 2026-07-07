@@ -46,6 +46,7 @@ kmc
 Then use the menu to:
 
 - run a saved command
+- start stable local Dev URLs
 - manage manual commands
 - import detected project commands
 - adjust local preferences
@@ -79,6 +80,96 @@ kmc settings
 ```
 
 Direct commands are useful for power users, scripts, and CI.
+
+## Dev URLs
+
+The **Dev URLs** screen creates stable local HTTPS URLs for supported web apps:
+
+```text
+https://my-app.kmc.localhost
+```
+
+Supported app types:
+
+- Next.js
+- Vite
+- NestJS
+- Express
+
+`kmc` writes the local Dev URL settings to `.kmc/dev-url.json` and stores the generated Caddy config in:
+
+```text
+~/.config/kmc/Caddyfile
+```
+
+The menu can:
+
+- start the selected project on its stored port
+- reload Caddy
+- install/trust Caddy's local HTTPS CA
+- change the local name/host
+- select a detected monorepo project
+- set a project path manually
+
+### Monorepos
+
+Dev URLs work from monorepos. `kmc` searches upward for the workspace root and scans workspace packages plus common nested app folders.
+
+Detected workspace markers include:
+
+- `package.json` `workspaces`
+- `pnpm-workspace.yaml`
+- `lerna.json`
+- `turbo.json`
+- `nx.json`
+
+This means you can run `kmc` from the repo root or from a nested app such as:
+
+```text
+apps/web/landing
+```
+
+Then choose **Dev URLs** -> **Select detected project**.
+
+If your app is in an unusual location, choose **Change project path** and enter the folder that contains its `package.json`.
+
+### Caddy
+
+Dev URLs use Caddy as the local HTTPS reverse proxy. Install it first if `kmc` reports that `caddy` is missing:
+
+```sh
+sudo apt install caddy
+```
+
+Other common package managers:
+
+```sh
+sudo dnf install caddy
+sudo pacman -S caddy
+brew install caddy
+```
+
+If Caddy is installed but reload fails because no admin API is running, start it with:
+
+```sh
+caddy start --config ~/.config/kmc/Caddyfile
+```
+
+Then choose **Reload Caddy** again.
+
+### Local HTTPS Trust
+
+Browsers may show `net::ERR_CERT_AUTHORITY_INVALID` until Caddy's local CA is trusted.
+
+Use:
+
+```sh
+caddy trust
+```
+
+or choose **Dev URLs** -> **Trust local HTTPS certs**.
+
+Restart the browser if it still shows the warning after the CA is trusted.
 
 ## Import
 
@@ -336,6 +427,7 @@ npm link
 - Commands inherit your current environment variables.
 - A command's `cwd` is resolved relative to the directory where you started `kmc`.
 - `kmc.json` is project-local by design. Put it in the repo if the commands should be shared with the team.
+- Dev URL preferences are local to `.kmc/dev-url.json`; keep them out of shared project config unless your team intentionally wants to share local hosts and ports.
 
 ## License
 

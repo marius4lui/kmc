@@ -13,6 +13,7 @@ Use `kmc` as the project command center when a repository has or should have a `
 - A repo has a `kmc.json` and you need to inspect or run its saved commands.
 - A user asks to install this skill or make it available from an agent skill picker.
 - A user wants common commands imported from `package.json`, `Makefile`, `pubspec.yaml`, or Docker Compose files.
+- A user wants stable local HTTPS dev URLs for a Next.js, Vite, NestJS, or Express app.
 
 ## Instructions
 
@@ -67,7 +68,33 @@ Use `kmc` as the project command center when a repository has or should have a `
    kmc validate
    ```
 
-6. When running a saved command, tell the user which command id you are about to run and use:
+6. For local web app URLs, use the interactive **Dev URLs** menu:
+
+   ```sh
+   kmc
+   ```
+
+   In monorepos, choose **Dev URLs** -> **Select detected project**. `kmc` searches upward for workspace roots such as `pnpm-workspace.yaml`, `package.json` workspaces, `turbo.json`, `nx.json`, and `lerna.json`, then scans nested app packages.
+
+   If Caddy is missing, install it first:
+
+   ```sh
+   sudo apt install caddy
+   ```
+
+   If Caddy is installed but not running, start it:
+
+   ```sh
+   caddy start --config ~/.config/kmc/Caddyfile
+   ```
+
+   If the browser shows `net::ERR_CERT_AUTHORITY_INVALID`, trust the local Caddy CA:
+
+   ```sh
+   caddy trust
+   ```
+
+7. When running a saved command, tell the user which command id you are about to run and use:
 
    ```sh
    kmc run <command-id>
