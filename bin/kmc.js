@@ -9,6 +9,6 @@ main().catch((error) => {
     process.exit(0);
   }
 
-  console.error(`${color.red("kmc:")} ${error.message}`);
-  process.exit(1);
+  if (!error.reported) console.error(`${color.red("kmc:")} ${error.message}`);
+  process.exit(process.exitCode || 1);
 });

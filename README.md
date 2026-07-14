@@ -81,6 +81,96 @@ kmc settings
 
 Direct commands are useful for power users, scripts, and CI.
 
+## KMC Scripts
+
+KMC Scripts is a local YAML workflow runner. Create a starter configuration with:
+
+```sh
+kmc scripts init
+```
+
+It creates files only when they do not exist:
+
+```text
+.kmc/
+├── scripts.yml
+└── scripts/
+    └── test.yml
+```
+
+The registry maps stable script ids to workflow files. Paths are relative to the registry and must stay inside the project:
+
+```yaml
+version: 1
+
+scripts:
+  checks:
+    file: ./scripts/checks.yml
+    description: Lint, typecheck, and test
+```
+
+A workflow contains sequential command steps:
+
+```yaml
+name: Node.js checks
+description: Verify the application
+env:
+  NODE_ENV: test
+defaults:
+  shell: bash
+  cwd: .
+
+steps:
+  - name: Install dependencies
+    run: pnpm install --frozen-lockfile
+
+  - name: Lint and typecheck
+    run: |
+      pnpm lint
+      pnpm typecheck
+    timeout: 300
+    retries: 1
+
+  - name: Tests
+    run: pnpm test
+    env:
+      CI: true
+    continue_on_error: false
+```
+
+Workflow environment variables apply to every step; step values and `--env` override them. Process environment variables are preserved. A step may override the default `shell` and `cwd`. Supported shells are `bash`, `sh`, and other available POSIX shells on Linux/macOS, plus `powershell`, `pwsh`, and `cmd` on Windows. Relative working directories resolve from the project root.
+
+Commands:
+
+```sh
+kmc scripts list
+kmc scripts validate
+kmc scripts run checks
+kmc run checks                         # short alias
+kmc run checks --dry-run
+kmc run checks --step lint-and-typecheck
+kmc run checks --env NODE_ENV=development
+kmc run checks --verbose --no-color
+```
+
+`--step` accepts a one-based index, exact name, or slugified name. `--dry-run` validates and prints the plan without executing commands. A failed command stops the workflow unless `continue_on_error` is enabled. Timeouts exit with `124`; interruption exits with `130`; other failures preserve the command's non-zero exit code.
+
+### Trust and security
+
+Workflow files execute local shell commands. Review `.kmc/scripts.yml` and every referenced workflow before trusting a repository:
+
+```sh
+kmc trust
+kmc trust status
+kmc untrust
+```
+
+Trust is stored in the platform configuration directory and is tied to both the canonical project path and a SHA-256 fingerprint of all active workflow files. Editing those files invalidates trust. Non-interactive execution is blocked until `kmc trust` has been run; `--yes` explicitly trusts the current fingerprint. Trust data contains no secrets.
+
+Use `kmc scripts validate` in CI before execution. The version 1 schema rejects unknown fields, unsafe paths, missing working directories, duplicate step names, invalid timeouts/retries, and unsupported shells. Future constructs such as `uses`, `depends_on`, `if`, `parallel`, and `cache` are intentionally not part of version 1.
+
+Python and generic shell workflows use the same format, for example `run: python -m pytest` or a multiline `run: |` block. On Windows, select `pwsh`, `powershell`, or `cmd`; on Linux/macOS, use `sh` for the widest portability.
+
 ## Dev URLs
 
 The **Dev URLs** screen creates stable local HTTPS URLs for supported web apps:
