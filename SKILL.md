@@ -27,6 +27,13 @@ Use `kmc` as the project command center when a repository has or should have a `
    If it is missing, prefer:
 
    ```sh
+   # Linux and macOS
+   curl -fsSL https://kmc.kmuc.app/install.sh | sh
+
+   # Windows PowerShell
+   irm https://kmc.kmuc.app/install.ps1 | iex
+
+   # Cross-platform fallback
    npm install -g @marius4lui/kmc
    ```
 

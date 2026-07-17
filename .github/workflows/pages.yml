@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/install.sh"
+      - "scripts/install.ps1"
       - "site/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
@@ -26,7 +27,7 @@ jobs:
       - name: Build Pages artifact
         run: |
           mkdir -p _site
-          cp site/index.html site/CNAME scripts/install.sh _site/
+          cp site/index.html site/CNAME scripts/install.sh scripts/install.ps1 _site/
           chmod 755 _site/install.sh
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

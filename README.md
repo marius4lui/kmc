@@ -10,10 +10,16 @@ Interactive command launcher for project scripts.
 npm install -g @marius4lui/kmc
 ```
 
-Or use the managed installer:
+Or use the managed installer on Linux and macOS:
 
 ```sh
 curl -fsSL https://kmc.kmuc.app/install.sh | sh
+```
+
+On Windows PowerShell:
+
+```powershell
+irm https://kmc.kmuc.app/install.ps1 | iex
 ```
 
 It also supports updates, diagnostics, uninstalling, pinned versions, and custom
@@ -24,6 +30,16 @@ curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- update
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- doctor
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- uninstall
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --version 1.0.10
+```
+
+Windows lifecycle commands can be passed after downloading the installer:
+
+```powershell
+Invoke-WebRequest https://kmc.kmuc.app/install.ps1 -OutFile install.ps1
+.\install.ps1 -Command update
+.\install.ps1 -Command doctor
+.\install.ps1 -Command uninstall
+.\install.ps1 -Version 1.0.10
 ```
 
 The installed command is:

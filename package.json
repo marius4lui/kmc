@@ -41,7 +41,7 @@
   "bugs": {
     "url": "https://github.com/marius4lui/kmc/issues"
   },
-  "homepage": "https://github.com/marius4lui/kmc#readme",
+  "homepage": "https://kmc.kmuc.app",
   "engines": {
     "node": ">=18"
   },

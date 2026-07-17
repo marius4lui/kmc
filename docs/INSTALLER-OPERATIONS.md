@@ -1,10 +1,12 @@
 # Installer operations
 
-The canonical installer source is `scripts/install.sh`. The Pages workflow copies
-that exact file to the website root, making it available as:
+The canonical installer sources are `scripts/install.sh` for Linux/macOS and
+`scripts/install.ps1` for Windows. The Pages workflow copies those exact files to
+the website root, making them available as:
 
 ```text
 https://kmc.kmuc.app/install.sh
+https://kmc.kmuc.app/install.ps1
 ```
 
 ## One-time owner tasks
@@ -36,12 +38,13 @@ curl -fsS https://kmc.kmuc.app/install.sh | head -n 1
 ### Pull request / branch
 
 `CI` installs locked dependencies, runs the Node.js test suite on Node 18, 20, and
-22, checks POSIX shell syntax, and verifies the installer help command.
+22, checks POSIX shell syntax, verifies the shell installer help command, and
+parses the Windows installer with PowerShell.
 
 ### Website / installer
 
-Every change to `scripts/install.sh`, `site/`, or the Pages workflow on `main`
-deploys the site. It can also be started manually with **Run workflow**.
+Every change to either installer, `site/`, or the Pages workflow on `main` deploys
+the site. It can also be started manually with **Run workflow**.
 
 ### npm release
 
@@ -59,3 +62,5 @@ deploys the site. It can also be started manually with **Run workflow**.
 The installer supports `install`, `update`, `uninstall`, and `doctor`. It falls
 back to `~/.local` when the npm global prefix is not writable, avoiding `sudo`.
 Use `--modify-path` only when the installer should update the user's shell profile.
+The PowerShell installer exposes the same lifecycle through `-Command` and uses
+`-ModifyPath` for persistent user PATH changes.
