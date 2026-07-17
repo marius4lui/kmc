@@ -2,20 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="kmc keeps project commands and trusted local workflows one terminal away.">
-    <meta name="theme-color" content="#080b12">
+    <meta name="theme-color" content="#070a0d">
     <title>kmc — your project command center</title>
     <style>
       :root {
         color-scheme: dark;
-        --bg: #080b12;
-        --panel: rgba(18, 24, 38, .76);
-        --line: rgba(148, 163, 184, .18);
-        --text: #f8fafc;
-        --muted: #9aa8bb;
-        --green: #68f7a5;
-        --blue: #73b7ff;
+        --bg: #070a0d;
+        --panel: rgba(15, 21, 26, .88);
+        --panel-2: #0b1014;
+        --line: rgba(185, 216, 198, .13);
+        --text: #f2f7f4;
+        --muted: #8b9c92;
+        --green: #80f7ac;
+        --blue: #76b9ff;
+        --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
       * { box-sizing: border-box; }
@@ -23,54 +25,165 @@
       body {
         margin: 0;
         min-height: 100vh;
+        overflow-x: hidden;
         background:
-          radial-gradient(circle at 20% 0%, rgba(49, 205, 130, .15), transparent 31rem),
-          radial-gradient(circle at 90% 20%, rgba(64, 139, 255, .13), transparent 32rem),
+          radial-gradient(circle at 12% -10%, rgba(64, 255, 148, .14), transparent 32rem),
+          radial-gradient(circle at 95% 18%, rgba(59, 135, 255, .11), transparent 29rem),
           var(--bg);
         color: var(--text);
       }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: .23;
+        background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: linear-gradient(to bottom, black, transparent 72%);
+      }
+      button, a { -webkit-tap-highlight-color: transparent; }
       a { color: inherit; }
-      .shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+      .shell { width: min(1160px, calc(100% - 40px)); margin-inline: auto; }
       nav { height: 76px; display: flex; align-items: center; justify-content: space-between; }
-      .brand { font: 800 1.25rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.06em; text-decoration: none; }
-      .brand span, .eyebrow { color: var(--green); }
-      .nav-link { color: var(--muted); text-decoration: none; font-size: .92rem; }
-      .hero { padding: clamp(72px, 12vw, 150px) 0 90px; text-align: center; }
-      .eyebrow { margin: 0 0 20px; font: 700 .78rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; letter-spacing: .16em; }
-      h1 { max-width: 900px; margin: 0 auto; font-size: clamp(3.1rem, 9vw, 7.2rem); line-height: .94; letter-spacing: -.075em; }
-      .lead { max-width: 660px; margin: 30px auto 38px; color: var(--muted); font-size: clamp(1rem, 2vw, 1.2rem); line-height: 1.7; }
-      .installer { max-width: 820px; margin: 0 auto; text-align: left; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); box-shadow: 0 30px 90px rgba(0, 0, 0, .34); backdrop-filter: blur(20px); overflow: hidden; }
-      .installer-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px 14px 20px; border-bottom: 1px solid var(--line); }
-      .detected { color: var(--muted); font: 600 .78rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
-      .tabs { display: flex; gap: 4px; padding: 4px; background: rgba(0, 0, 0, .25); border-radius: 10px; }
-      .tab, .copy { border: 0; color: var(--muted); background: transparent; cursor: pointer; font: 700 .78rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
-      .tab { padding: 9px 12px; border-radius: 7px; }
-      .tab.active { color: #08100c; background: var(--green); }
-      .command-row { display: flex; align-items: center; gap: 16px; padding: 26px 20px; }
-      code { flex: 1; overflow-x: auto; white-space: nowrap; color: #e8f4ee; font: 500 clamp(.76rem, 2vw, .95rem)/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; scrollbar-width: none; }
-      .copy { flex: 0 0 auto; padding: 10px 13px; border: 1px solid var(--line); border-radius: 9px; }
-      .copy:hover { color: var(--text); border-color: rgba(104, 247, 165, .55); }
-      .hint { margin: 14px auto 0; color: #718096; font-size: .8rem; }
-      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 20px 0 110px; }
-      .card { min-height: 220px; padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: rgba(16, 22, 34, .58); }
-      .number { color: var(--green); font: 700 .8rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
-      h2 { margin: 38px 0 12px; font-size: 1.18rem; letter-spacing: -.02em; }
-      .card p { margin: 0; color: var(--muted); line-height: 1.65; font-size: .94rem; }
-      .section-title { max-width: 700px; margin: 0 0 38px; font-size: clamp(2rem, 5vw, 3.7rem); line-height: 1.05; letter-spacing: -.055em; }
+      .brand { font: 800 1.25rem/1 var(--mono); letter-spacing: -.06em; text-decoration: none; }
+      .brand span, .eyebrow, .number { color: var(--green); }
+      .nav-link { color: var(--muted); text-decoration: none; font-size: .88rem; }
+      .nav-link:hover { color: var(--text); }
+      .hero { padding: clamp(62px, 10vw, 126px) 0 76px; text-align: center; }
+      .eyebrow { margin: 0 0 20px; font: 700 .74rem/1.4 var(--mono); text-transform: uppercase; letter-spacing: .17em; }
+      h1 { max-width: 940px; margin: 0 auto; font-size: clamp(3.25rem, 8.5vw, 7rem); line-height: .91; letter-spacing: -.075em; }
+      .lead { max-width: 650px; margin: 28px auto 46px; color: var(--muted); font-size: clamp(1rem, 2vw, 1.18rem); line-height: 1.65; }
+
+      .manager {
+        position: relative;
+        max-width: 1000px;
+        margin: 0 auto;
+        overflow: hidden;
+        text-align: left;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: var(--panel);
+        box-shadow: 0 34px 100px rgba(0, 0, 0, .42), inset 0 1px rgba(255,255,255,.025);
+        backdrop-filter: blur(22px);
+      }
+      .manager-bar { min-height: 61px; display: flex; align-items: center; gap: 18px; padding: 11px 14px 11px 19px; border-bottom: 1px solid var(--line); }
+      .traffic { display: flex; gap: 7px; }
+      .traffic i { width: 8px; height: 8px; border-radius: 50%; background: #29342e; }
+      .manager-title { color: #b6c4bc; font: 600 .75rem/1 var(--mono); }
+      .live { margin-left: auto; display: flex; align-items: center; gap: 7px; color: var(--muted); font: 600 .68rem/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+      .live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 13px var(--green); }
+      .tabs { display: flex; gap: 3px; padding: 3px; background: #080c0f; border: 1px solid var(--line); border-radius: 9px; }
+      .tab, .copy {
+        border: 0;
+        color: var(--muted);
+        background: transparent;
+        cursor: pointer;
+        font: 700 .7rem/1 var(--mono);
+      }
+      .tab { min-height: 32px; padding: 0 11px; border-radius: 6px; }
+      .tab.active { color: #07100b; background: var(--green); }
+      .manager-body { display: grid; grid-template-columns: minmax(260px, .9fr) minmax(0, 1.35fr); min-height: 402px; }
+      .steps { padding: 23px 20px 22px; border-right: 1px solid var(--line); }
+      .detected { display: flex; justify-content: space-between; gap: 12px; margin: 0 3px 21px; color: var(--muted); font: 600 .68rem/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+      .detected strong { color: var(--text); font-weight: 600; }
+      .step { position: relative; display: grid; grid-template-columns: 27px 1fr; gap: 12px; min-height: 58px; }
+      .step:not(:last-child)::after { content: ""; position: absolute; top: 24px; bottom: -1px; left: 11px; width: 1px; background: #243029; }
+      .step-dot {
+        position: relative;
+        z-index: 1;
+        width: 23px;
+        height: 23px;
+        display: grid;
+        place-items: center;
+        border: 1px solid #334139;
+        border-radius: 50%;
+        background: #0d1310;
+        color: var(--muted);
+        font: 700 .66rem/1 var(--mono);
+      }
+      .step.done .step-dot { border-color: rgba(128,247,172,.36); color: var(--green); background: rgba(128,247,172,.08); }
+      .step-name { padding-top: 3px; font-size: .83rem; font-weight: 650; }
+      .step-meta { display: block; margin-top: 4px; color: var(--muted); font: 500 .68rem/1.3 var(--mono); }
+      .terminal { min-width: 0; display: flex; flex-direction: column; background: rgba(5, 8, 10, .52); }
+      .terminal-label { padding: 18px 21px 0; color: #627168; font: 600 .67rem/1 var(--mono); text-transform: uppercase; letter-spacing: .1em; }
+      .terminal-output { flex: 1; margin: 0; padding: 20px 21px; overflow: hidden; color: #94a69b; font: 500 .77rem/1.85 var(--mono); white-space: pre-wrap; }
+      .terminal-output .bright { color: #e7f1eb; }
+      .terminal-output .ok { color: var(--green); }
+      .terminal-output .dim { color: #536159; }
+      .command-row { display: flex; align-items: center; gap: 13px; margin: 0 14px 14px; padding: 12px 12px 12px 15px; border: 1px solid var(--line); border-radius: 12px; background: #0c1210; }
+      .prompt { color: var(--green); font: 700 .85rem/1 var(--mono); }
+      code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; color: #e8f4ed; font: 500 .76rem/1.5 var(--mono); scrollbar-width: none; }
+      .copy { flex: 0 0 auto; min-width: 66px; min-height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; }
+      .copy:hover { color: var(--text); border-color: rgba(128, 247, 172, .5); }
+      .hint { margin: 15px auto 0; color: #65736b; font-size: .78rem; }
+
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 17px; padding: 20px 0 112px; }
+      .card, .platform { border: 1px solid var(--line); border-radius: 18px; background: rgba(13, 19, 23, .64); }
+      .card { min-height: 220px; padding: 27px; }
+      .number { font: 700 .75rem/1 var(--mono); }
+      h2 { margin: 38px 0 12px; font-size: 1.15rem; letter-spacing: -.02em; }
+      .card p { margin: 0; color: var(--muted); line-height: 1.65; font-size: .92rem; }
+      .section-title { max-width: 720px; margin: 0 0 38px; font-size: clamp(2rem, 5vw, 3.7rem); line-height: 1.04; letter-spacing: -.055em; }
       .platforms { padding-bottom: 110px; }
-      .platform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-      .platform { padding: 26px; border: 1px solid var(--line); border-radius: 18px; background: rgba(16, 22, 34, .58); }
+      .platform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
+      .platform { padding: 26px; }
       .platform strong { display: block; margin-bottom: 8px; }
-      .platform span { color: var(--muted); font-size: .9rem; }
-      footer { display: flex; justify-content: space-between; gap: 20px; padding: 30px 0 44px; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+      .platform span { color: var(--muted); font-size: .88rem; line-height: 1.6; }
+      footer { display: flex; justify-content: space-between; gap: 20px; padding: 30px 0 calc(44px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--muted); font-size: .82rem; }
       footer a { color: var(--blue); text-decoration: none; }
+
       @media (max-width: 760px) {
-        .shell { width: min(100% - 28px, 1120px); }
-        .hero { padding-top: 68px; }
-        .installer-head { align-items: flex-start; flex-direction: column; }
-        .grid, .platform-row { grid-template-columns: 1fr; }
-        .card { min-height: auto; }
-        footer { flex-direction: column; }
+        .shell { width: calc(100% - 24px); }
+        nav { height: 62px; }
+        .nav-link { font-size: .8rem; }
+        .hero { padding: 49px 0 58px; }
+        .eyebrow { margin-bottom: 15px; font-size: .65rem; }
+        h1 { max-width: 390px; font-size: clamp(3rem, 16vw, 4.7rem); line-height: .9; }
+        .lead { max-width: 390px; margin: 22px auto 32px; font-size: .96rem; line-height: 1.55; }
+        .manager { width: 100%; border-radius: 17px; }
+        .manager-bar { min-height: 54px; gap: 10px; padding: 9px 10px 9px 13px; }
+        .traffic, .live { display: none; }
+        .manager-title { font-size: .66rem; }
+        .tabs { margin-left: auto; }
+        .tab { min-height: 30px; padding: 0 9px; font-size: .64rem; }
+        .manager-body { grid-template-columns: 1fr; min-height: 0; }
+        .steps {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          gap: 0;
+          padding: 16px 14px 13px;
+          overflow: hidden;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .detected { grid-column: 1 / -1; margin: 0 1px 15px; font-size: .61rem; }
+        .step { display: block; min-height: 47px; text-align: center; }
+        .step:not(:last-child)::after { top: 10px; bottom: auto; left: calc(50% + 11px); right: calc(-50% + 11px); width: auto; height: 1px; }
+        .step-dot { width: 21px; height: 21px; margin: 0 auto; font-size: .6rem; }
+        .step-name { margin-top: 7px; padding: 0 1px; overflow: hidden; color: #9cadA3; font-size: .54rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+        .step-meta { display: none; }
+        .terminal-label { padding: 14px 15px 0; font-size: .6rem; }
+        .terminal-output { min-height: 196px; padding: 12px 15px 14px; font-size: clamp(.61rem, 2.7vw, .72rem); line-height: 1.72; }
+        .command-row { gap: 9px; margin: 0 9px 9px; padding: 10px 9px 10px 12px; }
+        code { font-size: .66rem; }
+        .copy { min-width: 57px; min-height: 33px; font-size: .64rem; }
+        .hint { max-width: 310px; line-height: 1.5; }
+        .grid { grid-template-columns: 1fr; gap: 12px; padding: 10px 0 82px; }
+        .card { min-height: 0; padding: 22px; }
+        .card h2 { margin-top: 28px; }
+        .platforms { padding-bottom: 78px; }
+        .section-title { margin-bottom: 26px; font-size: 2.45rem; }
+        .platform-row { grid-template-columns: 1fr; gap: 12px; }
+        .platform { padding: 22px; }
+        footer { flex-direction: column; gap: 9px; }
+      }
+      @media (max-width: 380px) {
+        .shell { width: calc(100% - 18px); }
+        .manager-title { display: none; }
+        .tabs { margin-left: 0; width: 100%; }
+        .tab { flex: 1; }
+        .step-name { font-size: .5rem; }
       }
       @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     </style>
@@ -87,20 +200,38 @@
         <h1>Stop remembering commands.</h1>
         <p class="lead">Save project commands, run trusted YAML workflows, and give every repository one clean terminal interface.</p>
 
-        <div class="installer">
-          <div class="installer-head">
-            <span class="detected" id="detected">Recommended for your system</span>
+        <div class="manager" aria-label="kmc installer manager">
+          <div class="manager-bar">
+            <span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="manager-title">kmc installer manager</span>
+            <span class="live">ready</span>
             <div class="tabs" role="tablist" aria-label="Operating system">
-              <button class="tab active" id="unix-tab" role="tab" aria-selected="true" data-platform="unix">Linux / macOS</button>
-              <button class="tab" id="windows-tab" role="tab" aria-selected="false" data-platform="windows">Windows</button>
+              <button class="tab active" role="tab" aria-selected="true" data-platform="unix">Linux / macOS</button>
+              <button class="tab" role="tab" aria-selected="false" data-platform="windows">Windows</button>
             </div>
           </div>
-          <div class="command-row">
-            <code id="install-command">curl -fsSL https://kmc.kmuc.app/install.sh | sh</code>
-            <button class="copy" id="copy" type="button">Copy</button>
+          <div class="manager-body">
+            <div class="steps">
+              <div class="detected"><span>Detected system</span><strong id="detected">Linux / macOS</strong></div>
+              <div class="step done"><span class="step-dot">✓</span><div class="step-name">System<span class="step-meta" id="system-meta">Linux detected</span></div></div>
+              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Node.js<span class="step-meta">v22.17 · compatible</span></div></div>
+              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Registry<span class="step-meta">package reachable</span></div></div>
+              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Target<span class="step-meta">user-local prefix</span></div></div>
+              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Install<span class="step-meta">npm global</span></div></div>
+              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Verify<span class="step-meta">kmc is ready</span></div></div>
+            </div>
+            <div class="terminal">
+              <div class="terminal-label">Installation preview</div>
+              <pre class="terminal-output" id="terminal-output"></pre>
+              <div class="command-row">
+                <span class="prompt">$</span>
+                <code id="install-command">curl -fsSL https://kmc.kmuc.app/install.sh | sh</code>
+                <button class="copy" id="copy" type="button">Copy</button>
+              </div>
+            </div>
           </div>
         </div>
-        <p class="hint">Requires Node.js 18 or newer. The installer never requires sudo.</p>
+        <p class="hint">Requires Node.js 18+. Checks everything first, installs without sudo, then verifies the result.</p>
       </section>
 
       <section class="shell">
@@ -115,8 +246,8 @@
         <p class="eyebrow">Every major platform</p>
         <h2 class="section-title">Native installation where you work.</h2>
         <div class="platform-row">
-          <div class="platform"><strong>Linux &amp; macOS</strong><span>POSIX shell installer with user-local fallback, update, uninstall, diagnostics, and version pinning.</span></div>
-          <div class="platform"><strong>Windows</strong><span>Native PowerShell installer with user PATH management and the same lifecycle commands.</span></div>
+          <div class="platform"><strong>Linux &amp; macOS</strong><span>System detection, dependency and registry checks, user-local fallback, updates, uninstall, diagnostics, and version pinning.</span></div>
+          <div class="platform"><strong>Windows</strong><span>Native PowerShell flow with the same visible checks, lifecycle commands, verification, and user PATH management.</span></div>
         </div>
       </section>
     </main>
@@ -127,25 +258,58 @@
     </footer>
 
     <script>
-      const commands = {
-        unix: "curl -fsSL https://kmc.kmuc.app/install.sh | sh",
-        windows: "irm https://kmc.kmuc.app/install.ps1 | iex"
+      const views = {
+        unix: {
+          name: "Linux / macOS",
+          command: "curl -fsSL https://kmc.kmuc.app/install.sh | sh",
+          output: `<span class="bright">[1/6] Detect system</span>        <span class="dim">$ uname -s</span>
+      <span class="ok">✓</span> Linux detected
+<span class="bright">[2/6] Check Node.js and npm</span> <span class="dim">$ node --version &amp;&amp; npm --version</span>
+      <span class="ok">✓</span> Node.js v22.17.0 is supported
+<span class="bright">[3/6] Check package</span>       <span class="dim">$ npm view @marius4lui/kmc@latest version</span>
+      <span class="ok">✓</span> Package is available
+<span class="bright">[4/6] Choose target</span>       <span class="dim">$ npm config get prefix</span>
+      <span class="ok">✓</span> Using ~/.local
+<span class="bright">[5/6] Install package</span>     <span class="dim">$ npm install --global …</span>
+      <span class="ok">✓</span> Package installed
+<span class="bright">[6/6] Verify installation</span> <span class="dim">$ kmc --version</span>
+      <span class="ok">✓ kmc is ready</span>`
+        },
+        windows: {
+          name: "Windows",
+          command: "irm https://kmc.kmuc.app/install.ps1 | iex",
+          output: `<span class="bright">[1/6] Detect system</span>        <span class="dim">&gt; $PSVersionTable.Platform</span>
+      <span class="ok">+</span> Windows detected
+<span class="bright">[2/6] Check Node.js and npm</span> <span class="dim">&gt; node --version; npm --version</span>
+      <span class="ok">+</span> Node.js v22.17.0 is supported
+<span class="bright">[3/6] Check package</span>       <span class="dim">&gt; npm view @marius4lui/kmc@latest version</span>
+      <span class="ok">+</span> Package is available
+<span class="bright">[4/6] Choose target</span>       <span class="dim">&gt; npm config get prefix</span>
+      <span class="ok">+</span> Using user npm prefix
+<span class="bright">[5/6] Install package</span>     <span class="dim">&gt; npm install --global …</span>
+      <span class="ok">+</span> Package installed
+<span class="bright">[6/6] Verify installation</span> <span class="dim">&gt; kmc.cmd --version</span>
+      <span class="ok">+ kmc is ready</span>`
+        }
       };
       const command = document.querySelector("#install-command");
       const detected = document.querySelector("#detected");
+      const systemMeta = document.querySelector("#system-meta");
+      const output = document.querySelector("#terminal-output");
       const tabs = [...document.querySelectorAll(".tab")];
       const copy = document.querySelector("#copy");
 
-      function select(platform, automatic = false) {
-        command.textContent = commands[platform];
+      function select(platform) {
+        const view = views[platform];
+        command.textContent = view.command;
+        detected.textContent = view.name;
+        systemMeta.textContent = `${view.name} detected`;
+        output.innerHTML = view.output;
         tabs.forEach((tab) => {
           const active = tab.dataset.platform === platform;
           tab.classList.toggle("active", active);
           tab.setAttribute("aria-selected", String(active));
         });
-        detected.textContent = automatic
-          ? `Detected: ${platform === "windows" ? "Windows" : "Linux / macOS"}`
-          : "Selected platform";
       }
 
       tabs.forEach((tab) => tab.addEventListener("click", () => select(tab.dataset.platform)));
@@ -165,7 +329,7 @@
       });
 
       const platform = navigator.userAgentData?.platform || navigator.platform || "";
-      select(/win/i.test(platform) ? "windows" : "unix", true);
+      select(/win/i.test(platform) ? "windows" : "unix");
     </script>
   </body>
 </html>

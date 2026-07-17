@@ -11,11 +11,39 @@ VERSION="latest"
 PREFIX=""
 MODIFY_PATH=0
 QUIET=0
+STEP=0
+TOTAL_STEPS=6
+
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+  GREEN="$(printf '\033[32m')"
+  CYAN="$(printf '\033[36m')"
+  DIM="$(printf '\033[2m')"
+  BOLD="$(printf '\033[1m')"
+  RESET="$(printf '\033[0m')"
+else
+  GREEN=""
+  CYAN=""
+  DIM=""
+  BOLD=""
+  RESET=""
+fi
 
 say() {
   if [ "$QUIET" -eq 0 ]; then
     printf '%s\n' "$*"
   fi
+}
+
+step() {
+  STEP=$((STEP + 1))
+  if [ "$QUIET" -eq 0 ]; then
+    printf '\n%s[%s/%s]%s %s%s%s\n' "$CYAN" "$STEP" "$TOTAL_STEPS" "$RESET" "$BOLD" "$1" "$RESET"
+    [ -z "${2:-}" ] || printf '      %s$ %s%s\n' "$DIM" "$2" "$RESET"
+  fi
+}
+
+pass() {
+  say "      ${GREEN}✓${RESET} $*"
 }
 
 fail() {
@@ -77,15 +105,36 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
+case "$COMMAND" in
+  uninstall|doctor) TOTAL_STEPS=5 ;;
+esac
+
+case "$(uname -s 2>/dev/null || printf unknown)" in
+  Linux*) SYSTEM_NAME="Linux" ;;
+  Darwin*) SYSTEM_NAME="macOS" ;;
+  *) SYSTEM_NAME="$(uname -s 2>/dev/null || printf unknown)" ;;
+esac
+step "Detect system" "uname -s"
+pass "$SYSTEM_NAME detected"
+
+step "Check Node.js and npm" "node --version && npm --version"
 command -v npm >/dev/null 2>&1 || fail "npm is required. Install Node.js ${MIN_NODE_MAJOR}+ first: https://nodejs.org/"
 command -v node >/dev/null 2>&1 || fail "node is required. Install Node.js ${MIN_NODE_MAJOR}+ first: https://nodejs.org/"
-
 NODE_MAJOR="$(node -p 'Number(process.versions.node.split(".")[0])' 2>/dev/null || printf '0')"
 case "$NODE_MAJOR" in
   ''|*[!0-9]*) fail "could not determine the installed Node.js version" ;;
 esac
 [ "$NODE_MAJOR" -ge "$MIN_NODE_MAJOR" ] || fail "Node.js ${MIN_NODE_MAJOR}+ is required; found $(node --version)"
+pass "Node.js $(node --version) is supported (requires ${MIN_NODE_MAJOR}+)"
+pass "npm $(npm --version) is available"
 
+step "Check package availability" "npm view ${PACKAGE_NAME}@${VERSION} version"
+RESOLVED_VERSION="$(npm view "${PACKAGE_NAME}@${VERSION}" version --silent 2>/dev/null)" ||
+  fail "${PACKAGE_NAME}@${VERSION} is not reachable from the npm registry"
+[ -n "$RESOLVED_VERSION" ] || fail "${PACKAGE_NAME}@${VERSION} returned no version from the npm registry"
+pass "${PACKAGE_NAME}@${RESOLVED_VERSION} is available"
+
+step "Choose installation target" "npm config get prefix"
 if [ -z "$PREFIX" ]; then
   NPM_PREFIX="$(npm config get prefix)"
   if [ -d "$NPM_PREFIX" ] && [ -w "$NPM_PREFIX" ]; then
@@ -99,6 +148,7 @@ if [ -z "$PREFIX" ]; then
 fi
 
 BIN_DIR="$PREFIX/bin"
+pass "Using $PREFIX"
 
 add_to_path() {
   case ":${PATH:-}:" in
@@ -128,20 +178,26 @@ add_to_path() {
 
 case "$COMMAND" in
   install|update)
+    step "Install package" "npm install --global --no-progress --prefix \"$PREFIX\" ${PACKAGE_NAME}@${VERSION}"
     mkdir -p "$PREFIX"
-    say "Installing ${PACKAGE_NAME}@${VERSION} into $PREFIX ..."
-    npm install --global --prefix "$PREFIX" "${PACKAGE_NAME}@${VERSION}"
+    npm install --global --no-progress --prefix "$PREFIX" "${PACKAGE_NAME}@${VERSION}"
     [ -x "$BIN_DIR/kmc" ] || fail "npm completed, but $BIN_DIR/kmc was not created"
     add_to_path
-    say "Installed: $("$BIN_DIR/kmc" --version)"
-    say "Run: kmc"
+    pass "Package installed"
+    step "Verify installation" "\"$BIN_DIR/kmc\" --version"
+    INSTALLED_VERSION="$("$BIN_DIR/kmc" --version)"
+    pass "kmc $INSTALLED_VERSION is ready"
+    say ""
+    say "${GREEN}${BOLD}Installation complete.${RESET} Run: kmc"
     ;;
   uninstall)
+    step "Remove package" "npm uninstall --global --prefix \"$PREFIX\" $PACKAGE_NAME"
     say "Removing $PACKAGE_NAME from $PREFIX ..."
     npm uninstall --global --prefix "$PREFIX" "$PACKAGE_NAME"
     say "kmc was removed from $PREFIX"
     ;;
   doctor)
+    step "Inspect installation" "\"$BIN_DIR/kmc\" --version"
     say "Node.js: $(node --version)"
     say "npm: $(npm --version)"
     say "Prefix: $PREFIX"
