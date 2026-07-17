@@ -138,3 +138,5 @@ npx skills add marius4lui/kmc
 ```
 
 If the host UI has an **Install skill** action, it should execute the same command for this repository. After installation, agents can invoke this skill as `$kmc`.
+
+When the interactive KMC updater installs a newer CLI release, it also updates existing project or global installations of this skill. The skills installer reuses the prior scope, selected agents, and installation links from its lock data.

@@ -110,13 +110,18 @@ test("custom groups display by label", async () => {
 });
 
 test("detects newer package versions", async () => {
-  const { compareVersions, isNewerVersion } = await import("../lib/update.js");
+  const { compareVersions, installedKmcSkillScopes, isNewerVersion, skillUpdateArgs } = await import("../lib/update.js");
 
   assert.equal(compareVersions("1.0.3", "1.0.4"), 1);
   assert.equal(compareVersions("1.0.3", "1.0.3"), 0);
   assert.equal(compareVersions("1.0.4", "1.0.3"), -1);
   assert.equal(isNewerVersion("1.0.3", "1.0.4"), true);
   assert.equal(isNewerVersion("1.0.3", "1.0.3"), false);
+  assert.deepEqual(installedKmcSkillScopes([{ name: "kmc" }], []), ["project"]);
+  assert.deepEqual(installedKmcSkillScopes([], [{ name: "kmc" }]), ["global"]);
+  assert.deepEqual(installedKmcSkillScopes([{ name: "kmc" }], [{ name: "kmc" }]), ["project", "global"]);
+  assert.deepEqual(skillUpdateArgs("project"), ["--yes", "skills", "update", "kmc", "--project", "--yes"]);
+  assert.deepEqual(skillUpdateArgs("global"), ["--yes", "skills", "update", "kmc", "--global", "--yes"]);
 });
 
 test("detects Next.js projects for dev URLs", async () => {

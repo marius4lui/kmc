@@ -10,6 +10,22 @@ Interactive command launcher for project scripts.
 npm install -g @marius4lui/kmc
 ```
 
+Or use the managed installer:
+
+```sh
+curl -fsSL https://kmc.kmuc.app/install.sh | sh
+```
+
+It also supports updates, diagnostics, uninstalling, pinned versions, and custom
+installation prefixes:
+
+```sh
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- update
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- doctor
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- uninstall
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --version 1.0.10
+```
+
 The installed command is:
 
 ```sh
@@ -46,6 +62,7 @@ kmc
 Then use the menu to:
 
 - run a saved command
+- open the dedicated **KMC Scripts** screen to run and manage YAML workflows
 - start stable local Dev URLs
 - manage manual commands
 - import detected project commands
@@ -59,6 +76,8 @@ On interactive starts, `kmc` checks npm for the latest published version. If a n
 ```sh
 npm install -g @marius4lui/kmc@latest
 ```
+
+After the CLI update, KMC detects existing project and global installations of the `kmc` skill and updates each one through the skills installer. The existing install scope, selected agents, and link/install layout are retained from the skill lock data. If the skill is not installed, the update skips it instead of changing the user's skill setup.
 
 or choose **Skip** to continue with the current version for that run.
 
