@@ -132,8 +132,8 @@ Usage:
   kmc import
   kmc validate
   kmc settings
-  kmc update [--check] [--channel stable|experimental|nightly] [--version VERSION]
-  kmc channel [set stable|experimental|nightly]
+  kmc update [--check] [--channel stable|beta|nightly] [--version VERSION]
+  kmc channel [set stable|beta|nightly]
   kmc doctor
   kmc dev detect|configure|start|reload|trust
 `)
@@ -630,12 +630,16 @@ func channelCommand(args []string) error {
 		return nil
 	}
 	if len(args) != 2 || args[0] != "set" {
-		return errors.New("usage: kmc channel set stable|experimental|nightly")
+		return errors.New("usage: kmc channel set stable|beta|nightly")
 	}
-	if args[1] != update.Stable && args[1] != update.Experimental && args[1] != update.Nightly {
+	channel := args[1]
+	if channel == update.Experimental {
+		channel = update.Beta
+	}
+	if channel != update.Stable && channel != update.Beta && channel != update.Nightly {
 		return fmt.Errorf("unknown channel %q", args[1])
 	}
-	settings.Channel = args[1]
+	settings.Channel = channel
 	if err := writeUpdateSettings(settings); err != nil {
 		return err
 	}
@@ -666,6 +670,9 @@ func updateCommand(ctx context.Context, args []string, currentVersion string) er
 		default:
 			return fmt.Errorf("unknown update option %q", args[index])
 		}
+	}
+	if channel == update.Experimental {
+		channel = update.Beta
 	}
 	client := update.NewClient("")
 	releases, err := client.Releases(ctx)

@@ -14,11 +14,11 @@ part of the runtime or release process.
 ## Release channels
 
 - `stable` resolves the newest non-draft, non-prerelease semantic version.
-- `experimental` resolves the newest GitHub prerelease and is opt-in.
+- `beta` resolves the newest GitHub prerelease and is opt-in.
 - An exact `--version vX.Y.Z` bypasses channel resolution but never accepts a
   draft release.
 
-The release tag is the source of truth. Final tags use `vX.Y.Z`; experimental
+The release tag is the source of truth. Final tags use `vX.Y.Z`; beta
 tags use a SemVer prerelease such as `v2.1.0-rc.1`.
 
 ## Release assets
@@ -64,12 +64,12 @@ Installer or website changes on `main` deploy through the Pages workflow.
 3. Push the tag.
 4. Confirm that every archive, `kmc_checksums.txt`, and SBOM is attached.
 5. Verify the provenance attestation.
-6. Test stable or experimental resolution as appropriate.
+6. Test stable or beta resolution as appropriate.
 7. Run installer smoke tests on Linux/macOS and Windows.
 
 ```sh
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- doctor
-curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel experimental
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel beta
 kmc update --check
 ```
 

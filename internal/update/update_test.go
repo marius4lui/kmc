@@ -18,9 +18,9 @@ func TestResolveChannels(t *testing.T) {
 	if err != nil || stable.TagName != "v1.9.0" {
 		t.Fatalf("stable = %#v, %v", stable, err)
 	}
-	experimental, err := Resolve(releases, Experimental, "")
-	if err != nil || experimental.TagName != "v2.0.0-rc.1" {
-		t.Fatalf("experimental = %#v, %v", experimental, err)
+	beta, err := Resolve(releases, Beta, "")
+	if err != nil || beta.TagName != "v2.0.0-rc.1" {
+		t.Fatalf("beta = %#v, %v", beta, err)
 	}
 }
 

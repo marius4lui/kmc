@@ -30,7 +30,7 @@ Usage:
   install.sh [install|update|uninstall|doctor] [options]
 
 Options:
-  --channel CHANNEL  Release channel: stable or experimental (default: stable)
+  --channel CHANNEL  Release channel: stable or beta (default: stable)
   --version VERSION  Install an exact GitHub release (for example v2.0.0)
   --prefix PATH      Install below PATH (default: ~/.local)
   --modify-path      Add the selected bin directory to your shell profile
@@ -40,7 +40,7 @@ Options:
 
 Examples:
   curl -fsSL https://kmc.kmuc.app/install.sh | sh
-  curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel experimental
+  curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel beta
   curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --version v2.0.0
   curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- uninstall
 EOF
@@ -74,8 +74,9 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$CHANNEL" in
-  stable|experimental) ;;
-  *) fail "unsupported channel '$CHANNEL' (expected stable or experimental)" ;;
+  experimental) CHANNEL="beta" ;;
+  stable|beta) ;;
+  *) fail "unsupported channel '$CHANNEL' (expected stable or beta)" ;;
 esac
 
 [ -n "$PREFIX" ] || {

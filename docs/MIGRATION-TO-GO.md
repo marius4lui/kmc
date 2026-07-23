@@ -45,10 +45,10 @@ kmc channel set stable
 kmc update
 ```
 
-Experimental releases require explicit opt-in:
+Beta releases require explicit opt-in:
 
 ```sh
-kmc channel set experimental
+kmc channel set beta
 kmc update
 ```
 

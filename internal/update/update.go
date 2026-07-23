@@ -24,6 +24,7 @@ import (
 const (
 	DefaultRepository = "marius4lui/kmc"
 	Stable            = "stable"
+	Beta              = "beta"
 	Experimental      = "experimental"
 	Nightly           = "nightly"
 )
@@ -108,7 +109,7 @@ func Resolve(releases []Release, channel, version string) (*Release, error) {
 			if release.Prerelease || strings.Contains(normalizeVersion(release.TagName), "-") {
 				continue
 			}
-		case Experimental:
+		case Beta, Experimental:
 			if !release.Prerelease && !strings.Contains(normalizeVersion(release.TagName), "-") {
 				continue
 			}

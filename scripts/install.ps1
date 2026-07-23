@@ -2,7 +2,7 @@
 param(
     [ValidateSet("install", "update", "uninstall", "doctor")]
     [string]$Command = "install",
-    [ValidateSet("stable", "experimental")]
+    [ValidateSet("stable", "beta", "experimental")]
     [string]$Channel = "stable",
     [string]$Version = "",
     [string]$Prefix = "",
@@ -12,6 +12,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if ($Channel -eq "experimental") { $Channel = "beta" }
 $Repository = if ($env:KMC_GITHUB_REPOSITORY) { $env:KMC_GITHUB_REPOSITORY } else { "marius4lui/kmc" }
 $ApiUrl = if ($env:KMC_GITHUB_API_URL) { $env:KMC_GITHUB_API_URL.TrimEnd("/") } else { "https://api.github.com" }
 $DownloadUrl = if ($env:KMC_GITHUB_DOWNLOAD_URL) { $env:KMC_GITHUB_DOWNLOAD_URL.TrimEnd("/") } else { "https://github.com" }

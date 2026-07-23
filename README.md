@@ -22,14 +22,14 @@ irm https://kmc.kmuc.app/install.ps1 | iex
 
 It also supports updates, diagnostics, uninstalling, pinned versions, and custom
 installation prefixes. Stable releases are the default; prereleases require an
-explicit experimental channel:
+explicit beta channel:
 
 ```sh
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- update
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- doctor
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- uninstall
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --version v2.0.0
-curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel experimental
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel beta
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --verify-signature
 ```
 
@@ -41,7 +41,7 @@ Invoke-WebRequest https://kmc.kmuc.app/install.ps1 -OutFile install.ps1
 .\install.ps1 -Command doctor
 .\install.ps1 -Command uninstall
 .\install.ps1 -Version v2.0.0
-.\install.ps1 -Channel experimental
+.\install.ps1 -Channel beta
 ```
 
 The installed command is:
@@ -92,12 +92,12 @@ screens use Space to toggle entries. Ctrl+C returns from or closes the current
 interactive prompt.
 
 KMC resolves updates from signed, checksummed GitHub Release assets. Stable is
-the default channel; experimental releases are always opt-in:
+the default channel; beta releases are always opt-in:
 
 ```sh
 kmc update --check
 kmc update
-kmc channel set experimental
+kmc channel set beta
 kmc update
 ```
 
