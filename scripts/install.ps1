@@ -2,156 +2,170 @@
 param(
     [ValidateSet("install", "update", "uninstall", "doctor")]
     [string]$Command = "install",
-    [string]$Version = "latest",
+    [ValidateSet("stable", "experimental")]
+    [string]$Channel = "stable",
+    [string]$Version = "",
     [string]$Prefix = "",
     [switch]$ModifyPath,
+    [switch]$VerifySignature,
     [switch]$Quiet
 )
 
 $ErrorActionPreference = "Stop"
-$PackageName = "@marius4lui/kmc"
-$MinimumNodeMajor = 18
-$script:StepNumber = 0
-$script:TotalSteps = 6
+$Repository = if ($env:KMC_GITHUB_REPOSITORY) { $env:KMC_GITHUB_REPOSITORY } else { "marius4lui/kmc" }
+$ApiUrl = if ($env:KMC_GITHUB_API_URL) { $env:KMC_GITHUB_API_URL.TrimEnd("/") } else { "https://api.github.com" }
+$DownloadUrl = if ($env:KMC_GITHUB_DOWNLOAD_URL) { $env:KMC_GITHUB_DOWNLOAD_URL.TrimEnd("/") } else { "https://github.com" }
 
 function Write-Status([string]$Message) {
-    if (-not $Quiet) {
-        Write-Host $Message
-    }
+    if (-not $Quiet) { Write-Host $Message }
 }
 
 function Stop-Installer([string]$Message) {
     throw "kmc installer: $Message"
 }
 
-function Write-Step([string]$Title, [string]$CommandText) {
-    $script:StepNumber += 1
-    if (-not $Quiet) {
-        Write-Host ""
-        Write-Host "[$($script:StepNumber)/$($script:TotalSteps)] " -ForegroundColor Cyan -NoNewline
-        Write-Host $Title -ForegroundColor White
-        if ($CommandText) {
-            Write-Host "      > $CommandText" -ForegroundColor DarkGray
-        }
-    }
+if (-not ($IsWindows -or $env:OS -eq "Windows_NT")) {
+    Stop-Installer "install.ps1 supports Windows only; use install.sh on macOS or Linux"
 }
 
-function Write-Pass([string]$Message) {
-    if (-not $Quiet) {
-        Write-Host "      + " -ForegroundColor Green -NoNewline
-        Write-Host $Message
-    }
+$Arch = switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()) {
+    "X64" { "amd64" }
+    "Arm64" { "arm64" }
+    default { Stop-Installer "unsupported architecture: $_" }
 }
 
-function Invoke-Npm {
-    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
-    & npm.cmd @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        Stop-Installer "npm failed with exit code $LASTEXITCODE"
-    }
-}
-
-if ($Command -in "uninstall", "doctor") {
-    $script:TotalSteps = 5
-}
-
-Write-Step "Detect system" '$PSVersionTable.Platform'
-$DetectedSystem = if ($IsWindows -or $env:OS -eq "Windows_NT") { "Windows" } else { $PSVersionTable.Platform }
-Write-Pass "$DetectedSystem detected"
-
-Write-Step "Check Node.js and npm" "node --version; npm --version"
-if (-not (Get-Command node.exe -ErrorAction SilentlyContinue)) {
-    Stop-Installer "Node.js $MinimumNodeMajor+ is required: https://nodejs.org/"
-}
-if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) {
-    Stop-Installer "npm is required and normally ships with Node.js: https://nodejs.org/"
-}
-
-$NodeVersion = (& node.exe --version).Trim()
-$NodeMajor = [int]($NodeVersion.TrimStart("v").Split(".")[0])
-if ($NodeMajor -lt $MinimumNodeMajor) {
-    Stop-Installer "Node.js $MinimumNodeMajor+ is required; found $NodeVersion"
-}
-Write-Pass "Node.js $NodeVersion is supported (requires $MinimumNodeMajor+)"
-Write-Pass "npm $((& npm.cmd --version).Trim()) is available"
-
-Write-Step "Check package availability" "npm view $PackageName@$Version version"
-$ResolvedVersion = (& npm.cmd view "$PackageName@$Version" version --silent).Trim()
-if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($ResolvedVersion)) {
-    Stop-Installer "$PackageName@$Version is not reachable from the npm registry"
-}
-Write-Pass "$PackageName@$ResolvedVersion is available"
-
-Write-Step "Choose installation target" "npm config get prefix"
 if ([string]::IsNullOrWhiteSpace($Prefix)) {
-    $Prefix = (& npm.cmd config get prefix).Trim()
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($Prefix)) {
-        Stop-Installer "could not determine the npm global prefix; pass -Prefix PATH"
-    }
+    $Prefix = Join-Path ([Environment]::GetFolderPath("LocalApplicationData")) "Programs\kmc"
 }
-
 $Prefix = [System.IO.Path]::GetFullPath($Prefix)
-$KmcCommand = Join-Path $Prefix "kmc.cmd"
-Write-Pass "Using $Prefix"
+$KmcCommand = Join-Path $Prefix "kmc.exe"
+$StateFile = Join-Path $Prefix "install.json"
+
+function Resolve-KmcVersion {
+    if (-not [string]::IsNullOrWhiteSpace($Version)) {
+        if ($Version.StartsWith("v")) { return $Version }
+        return "v$Version"
+    }
+    $Headers = @{ Accept = "application/vnd.github+json" }
+    if ($Channel -eq "stable") {
+        $Release = Invoke-RestMethod -Headers $Headers -Uri "$ApiUrl/repos/$Repository/releases/latest"
+    } else {
+        $Release = Invoke-RestMethod -Headers $Headers -Uri "$ApiUrl/repos/$Repository/releases?per_page=100" |
+            Where-Object { $_.prerelease -and -not $_.draft } |
+            Select-Object -First 1
+    }
+    if (-not $Release -or [string]::IsNullOrWhiteSpace($Release.tag_name)) {
+        Stop-Installer "no $Channel release is available"
+    }
+    return [string]$Release.tag_name
+}
 
 function Add-KmcToPath {
     $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
     $PathParts = @($UserPath -split ";" | Where-Object { $_ })
-    if ($PathParts -contains $Prefix) {
-        return
-    }
-
+    if ($PathParts -contains $Prefix) { return }
     if (-not $ModifyPath) {
         Write-Status "Add this directory to your user PATH: $Prefix"
         return
     }
-
-    $NewPath = (@($PathParts) + $Prefix) -join ";"
-    [Environment]::SetEnvironmentVariable("Path", $NewPath, "User")
-    if (($env:Path -split ";") -notcontains $Prefix) {
-        $env:Path = "$Prefix;$env:Path"
-    }
+    [Environment]::SetEnvironmentVariable("Path", ((@($PathParts) + $Prefix) -join ";"), "User")
+    if (($env:Path -split ";") -notcontains $Prefix) { $env:Path = "$Prefix;$env:Path" }
     Write-Status "Added $Prefix to your user PATH. New terminals will pick it up."
 }
 
-switch ($Command) {
-    { $_ -in "install", "update" } {
-        Write-Step "Install package" "npm install --global --no-progress --prefix `"$Prefix`" $PackageName@$Version"
-        Invoke-Npm install --global --no-progress --prefix $Prefix "$PackageName@$Version"
-        if (-not (Test-Path -LiteralPath $KmcCommand -PathType Leaf)) {
-            Stop-Installer "npm completed, but $KmcCommand was not created"
+function Install-Kmc {
+    $ResolvedVersion = Resolve-KmcVersion
+    $PlainVersion = $ResolvedVersion.TrimStart("v")
+    $Asset = "kmc_${PlainVersion}_windows_${Arch}.zip"
+    $BaseUrl = "$DownloadUrl/$Repository/releases/download/$ResolvedVersion"
+    $TempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("kmc-install-" + [guid]::NewGuid())
+    New-Item -ItemType Directory -Path $TempDir | Out-Null
+    try {
+        $Archive = Join-Path $TempDir $Asset
+        $Checksums = Join-Path $TempDir "kmc_checksums.txt"
+        Write-Status "Downloading kmc $ResolvedVersion ($Channel) for windows/$Arch..."
+        Invoke-WebRequest -UseBasicParsing -Uri "$BaseUrl/$Asset" -OutFile $Archive
+        Invoke-WebRequest -UseBasicParsing -Uri "$BaseUrl/kmc_checksums.txt" -OutFile $Checksums
+        $ChecksumLine = Get-Content -LiteralPath $Checksums |
+            Where-Object { $_ -match "^[0-9a-fA-F]{64}\s+\*?$([regex]::Escape($Asset))$" } |
+            Select-Object -First 1
+        if (-not $ChecksumLine) { Stop-Installer "checksum for $Asset is missing" }
+        $Expected = ($ChecksumLine -split "\s+")[0].ToLowerInvariant()
+        $Actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $Archive).Hash.ToLowerInvariant()
+        if ($Actual -ne $Expected) { Stop-Installer "SHA-256 verification failed for $Asset" }
+        if ($VerifySignature) {
+            if (-not (Get-Command gh.exe -ErrorAction SilentlyContinue)) {
+                Stop-Installer "gh is required for -VerifySignature"
+            }
+            & gh.exe attestation verify $Archive --repo $Repository | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Stop-Installer "GitHub artifact attestation verification failed for $Asset"
+            }
         }
+
+        $Unpacked = Join-Path $TempDir "unpacked"
+        Expand-Archive -LiteralPath $Archive -DestinationPath $Unpacked
+        $DownloadedBinary = Join-Path $Unpacked "kmc.exe"
+        if (-not (Test-Path -LiteralPath $DownloadedBinary -PathType Leaf)) {
+            Stop-Installer "release archive does not contain kmc.exe"
+        }
+        & $DownloadedBinary --version | Out-Null
+        if ($LASTEXITCODE -ne 0) { Stop-Installer "downloaded binary did not pass its version check" }
+
+        New-Item -ItemType Directory -Force -Path $Prefix | Out-Null
+        $Staged = Join-Path $Prefix ".kmc.new.$PID.exe"
+        Copy-Item -LiteralPath $DownloadedBinary -Destination $Staged -Force
+        if (Test-Path -LiteralPath $KmcCommand) {
+            $Backup = Join-Path $Prefix ".kmc.backup.$PID.exe"
+            [System.IO.File]::Replace($Staged, $KmcCommand, $Backup)
+            Remove-Item -LiteralPath $Backup -Force -ErrorAction SilentlyContinue
+        } else {
+            Move-Item -LiteralPath $Staged -Destination $KmcCommand
+        }
+        @{
+            version = $ResolvedVersion
+            channel = $Channel
+            os = "windows"
+            arch = $Arch
+        } | ConvertTo-Json | Set-Content -LiteralPath $StateFile -Encoding utf8
         Add-KmcToPath
-        Write-Pass "Package installed"
-        Write-Step "Verify installation" "`"$KmcCommand`" --version"
-        $InstalledVersion = (& $KmcCommand --version).Trim()
-        Write-Pass "kmc $InstalledVersion is ready"
-        Write-Status ""
-        Write-Host "Installation complete. " -ForegroundColor Green -NoNewline
-        Write-Host "Run: kmc"
+        Write-Status "kmc $ResolvedVersion installed at $KmcCommand"
+    } finally {
+        Remove-Item -LiteralPath $TempDir -Recurse -Force -ErrorAction SilentlyContinue
     }
+}
+
+switch ($Command) {
+    { $_ -in "install", "update" } { Install-Kmc }
     "uninstall" {
-        Write-Step "Remove package" "npm uninstall --global --prefix `"$Prefix`" $PackageName"
-        Write-Status "Removing $PackageName from $Prefix ..."
-        Invoke-Npm uninstall --global --prefix $Prefix $PackageName
-        Write-Status "kmc was removed from $Prefix"
+        if (Test-Path -LiteralPath $KmcCommand) {
+            Remove-Item -LiteralPath $KmcCommand -Force
+            Write-Status "Removed $KmcCommand"
+        } else {
+            Write-Status "kmc is not installed at $KmcCommand"
+        }
+        Remove-Item -LiteralPath $StateFile -Force -ErrorAction SilentlyContinue
     }
     "doctor" {
-        Write-Step "Inspect installation" "`"$KmcCommand`" --version"
-        Write-Status "Node.js: $NodeVersion"
-        Write-Status "npm: $((& npm.cmd --version).Trim())"
+        Write-Status "Repository: $Repository"
+        Write-Status "Platform: windows/$Arch"
+        Write-Status "Channel: $Channel"
         Write-Status "Prefix: $Prefix"
         if (Test-Path -LiteralPath $KmcCommand -PathType Leaf) {
             Write-Status "kmc: $((& $KmcCommand --version).Trim()) ($KmcCommand)"
-        } elseif ($FoundKmc = Get-Command kmc.cmd -ErrorAction SilentlyContinue) {
+        } elseif ($FoundKmc = Get-Command kmc.exe -ErrorAction SilentlyContinue) {
             Write-Status "kmc: $((& $FoundKmc.Source --version).Trim()) ($($FoundKmc.Source))"
         } else {
             Stop-Installer "kmc is not installed"
         }
-        if (($env:Path -split ";") -contains $Prefix) {
-            Write-Status "PATH: ready"
+        if (Test-Path -LiteralPath $StateFile) { Write-Status "Installer metadata: $StateFile" }
+        if (($env:Path -split ";") -contains $Prefix) { Write-Status "PATH: ready" }
+        else { Write-Status "PATH: $Prefix is missing from this terminal" }
+        if ((Get-Command npm.cmd -ErrorAction SilentlyContinue) -and
+            ((& npm.cmd list --global --depth=0 "@marius4lui/kmc" 2>$null) -match "@marius4lui/kmc@")) {
+            Write-Status "Legacy npm installation: detected (remove manually with npm uninstall -g @marius4lui/kmc)"
         } else {
-            Write-Status "PATH: $Prefix is missing from this terminal"
+            Write-Status "Legacy npm installation: not detected"
         }
     }
 }

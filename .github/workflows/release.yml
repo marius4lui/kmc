@@ -1,4 +1,4 @@
-name: Release npm package
+name: Release native binaries
 
 on:
   push:
@@ -6,23 +6,41 @@ on:
       - "v*.*.*"
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
+  attestations: write
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - name: Ensure tag matches package version
-        run: test "${GITHUB_REF_NAME}" = "v$(node -p "require('./package.json').version")"
-      - run: npm publish --provenance --access public
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          cache: true
+      - name: Test
+        run: go test ./...
+      - name: Validate release tag
+        run: |
+          case "$GITHUB_REF_NAME" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "invalid release tag: $GITHUB_REF_NAME" >&2; exit 1 ;;
+          esac
+      - uses: anchore/sbom-action/download-syft@v0
+      - uses: goreleaser/goreleaser-action@v6
+        id: goreleaser
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Attest release archives
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist/*.tar.gz
+            dist/*.zip
