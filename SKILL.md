@@ -33,14 +33,6 @@ Use `kmc` as the project command center when a repository has or should have a `
    # Windows PowerShell
    irm https://kmc.kmuc.app/install.ps1 | iex
 
-   # Cross-platform fallback
-   npm install -g @marius4lui/kmc
-   ```
-
-   For one-off use, run:
-
-   ```sh
-   npx @marius4lui/kmc --help
    ```
 
 2. Inspect the current repository before changing commands or workflows:
@@ -146,4 +138,5 @@ npx skills add marius4lui/kmc
 
 If the host UI has an **Install skill** action, it should execute the same command for this repository. After installation, agents can invoke this skill as `$kmc`.
 
-When the interactive KMC updater installs a newer CLI release, it also updates existing project or global installations of this skill. The skills installer reuses the prior scope, selected agents, and installation links from its lock data.
+The native CLI and this skill have independent lifecycles. Update the CLI with
+`kmc update`; update an installed skill with the host's skill installer.

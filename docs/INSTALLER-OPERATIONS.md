@@ -1,66 +1,94 @@
-# Installer operations
+# Installer and release operations
 
-The canonical installer sources are `scripts/install.sh` for Linux/macOS and
-`scripts/install.ps1` for Windows. The Pages workflow copies those exact files to
-the website root, making them available as:
+The canonical installers are `scripts/install.sh` and `scripts/install.ps1`.
+GitHub Pages copies those exact files to:
 
 ```text
 https://kmc.kmuc.app/install.sh
 https://kmc.kmuc.app/install.ps1
 ```
 
-## One-time owner tasks
+KMC is distributed as native GitHub Release binaries. Node.js and npm are not
+part of the runtime or release process.
 
-- In the repository, open **Settings → Pages** and select **GitHub Actions** as the
-  source.
-- In the DNS zone for `kmuc.app`, create or change the `kmc` record to a `CNAME`
-  targeting `marius4lui.github.io`. If Cloudflare is in front of the domain,
-  start with **DNS only** (grey cloud) until GitHub has issued the Pages
-  certificate. Remove any Worker, redirect, or Pages route currently serving
-  `kmc.kmuc.app/*`; it must not replace `/install.sh` with HTML.
-- After DNS has propagated, enable **Enforce HTTPS** in **Settings → Pages**.
-- Add the npm automation token as the repository secret `NPM_TOKEN`. Configure it
-  for package `@marius4lui/kmc`, with publish permission and 2FA bypass for CI.
-- Protect `main` and require the `CI` checks before merging.
+## Release channels
 
-GitHub Pages reads the custom domain from `site/CNAME`. Do not configure a second
-Pages deployment for this repository.
+- `stable` resolves the newest non-draft, non-prerelease semantic version.
+- `experimental` resolves the newest GitHub prerelease and is opt-in.
+- An exact `--version vX.Y.Z` bypasses channel resolution but never accepts a
+  draft release.
 
-Verify that the endpoint is really the script, not merely a successful HTML page:
+The release tag is the source of truth. Final tags use `vX.Y.Z`; experimental
+tags use a SemVer prerelease such as `v2.1.0-rc.1`.
 
-```sh
-curl -fsS https://kmc.kmuc.app/install.sh | head -n 1
-# expected: #!/bin/sh
+## Release assets
+
+GoReleaser creates archives for Linux, macOS, and Windows on amd64 and arm64:
+
+```text
+kmc_2.0.0_linux_amd64.tar.gz
+kmc_2.0.0_linux_arm64.tar.gz
+kmc_2.0.0_darwin_amd64.tar.gz
+kmc_2.0.0_darwin_arm64.tar.gz
+kmc_2.0.0_windows_amd64.zip
+kmc_2.0.0_windows_arm64.zip
+kmc_checksums.txt
 ```
+
+Every installer download is verified using SHA-256 before extraction. With
+`--verify-signature`/`-VerifySignature`, the installer additionally verifies the
+GitHub artifact attestation through `gh`. The new binary is staged and moved
+into place only after verification. Release archives also receive GitHub
+build-provenance attestations and SBOMs.
 
 ## Delivery flows
 
-### Pull request / branch
+Pull requests and branches run:
 
-`CI` installs locked dependencies, runs the Node.js test suite on Node 18, 20, and
-22, checks POSIX shell syntax, verifies the shell installer help command, and
-parses the Windows installer with PowerShell.
+- tests and vet on Go 1.24 plus the current stable Go release;
+- gofmt verification;
+- cross-compilation for every supported target;
+- POSIX and PowerShell installer validation;
+- a GoReleaser snapshot build.
 
-### Website / installer
+Pushing `v*.*.*` runs tests, validates the tag, builds the release with
+GoReleaser, uploads checksums and SBOMs, and attests the archives. SemVer
+prerelease tags automatically create GitHub prereleases.
 
-Every change to either installer, `site/`, or the Pages workflow on `main` deploys
-the site. It can also be started manually with **Run workflow**.
+Installer or website changes on `main` deploy through the Pages workflow.
 
-### npm release
+## Release procedure
 
-1. Update `package.json` and `package-lock.json` to the same version.
-2. Merge the tested change to `main`.
-3. Create and push the matching tag, for example `v1.1.0`.
-4. The release workflow checks that the tag equals the package version, tests the
-   package, and publishes it to npm with provenance.
-5. Verify the public path with:
+1. Ensure CI is green and update the changelog.
+2. Tag the tested commit, for example `v2.0.0` or `v2.1.0-rc.1`.
+3. Push the tag.
+4. Confirm that every archive, `kmc_checksums.txt`, and SBOM is attached.
+5. Verify the provenance attestation.
+6. Test stable or experimental resolution as appropriate.
+7. Run installer smoke tests on Linux/macOS and Windows.
 
-   ```sh
-   curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- doctor
-   ```
+```sh
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- doctor
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel experimental
+kmc update --check
+```
 
-The installer supports `install`, `update`, `uninstall`, and `doctor`. It falls
-back to `~/.local` when the npm global prefix is not writable, avoiding `sudo`.
-Use `--modify-path` only when the installer should update the user's shell profile.
-The PowerShell installer exposes the same lifecycle through `-Command` and uses
-`-ModifyPath` for persistent user PATH changes.
+## Incident and rollback
+
+- Never replace or delete an existing GitHub Release asset in place. Publish a
+  corrected patch version.
+- If a release is unsafe, mark it clearly and publish a fixed version. Drafts
+  are never selected; prereleases are never selected by stable.
+- A checksum mismatch must be treated as a failed installation. Do not advise
+  users to bypass verification.
+- Exact-version installation provides the supported rollback path.
+- Uninstall removes the binary and installer metadata only. Project
+  configuration and workflow trust data are retained.
+
+## One-time repository setup
+
+- Configure GitHub Pages to use GitHub Actions.
+- Point `kmc.kmuc.app` to `marius4lui.github.io` and enforce HTTPS.
+- Protect `main` and require CI.
+- Keep release workflow permissions minimal: contents, identity token, and
+  attestations only.

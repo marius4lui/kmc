@@ -6,11 +6,9 @@ Interactive command launcher for project scripts.
 
 ## Install
 
-```sh
-npm install -g @marius4lui/kmc
-```
+KMC is distributed as a native Go binary. No Node.js runtime is required.
 
-Or use the managed installer on Linux and macOS:
+On Linux and macOS:
 
 ```sh
 curl -fsSL https://kmc.kmuc.app/install.sh | sh
@@ -23,13 +21,16 @@ irm https://kmc.kmuc.app/install.ps1 | iex
 ```
 
 It also supports updates, diagnostics, uninstalling, pinned versions, and custom
-installation prefixes:
+installation prefixes. Stable releases are the default; prereleases require an
+explicit experimental channel:
 
 ```sh
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- update
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- doctor
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- uninstall
-curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --version 1.0.10
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --version v2.0.0
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel experimental
+curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --verify-signature
 ```
 
 Windows lifecycle commands can be passed after downloading the installer:
@@ -39,7 +40,8 @@ Invoke-WebRequest https://kmc.kmuc.app/install.ps1 -OutFile install.ps1
 .\install.ps1 -Command update
 .\install.ps1 -Command doctor
 .\install.ps1 -Command uninstall
-.\install.ps1 -Version 1.0.10
+.\install.ps1 -Version v2.0.0
+.\install.ps1 -Channel experimental
 ```
 
 The installed command is:
@@ -85,17 +87,23 @@ Then use the menu to:
 - adjust local preferences
 - quit
 
-Use the arrow keys to move through the menu and press Enter to select. Press Esc to go back from nested screens.
+Use the arrow keys to move through menus and press Enter to select. Checkbox
+screens use Space to toggle entries. Ctrl+C returns from or closes the current
+interactive prompt.
 
-On interactive starts, `kmc` checks npm for the latest published version. If a newer version is available, you can choose **Update now** to run:
+KMC resolves updates from signed, checksummed GitHub Release assets. Stable is
+the default channel; experimental releases are always opt-in:
 
 ```sh
-npm install -g @marius4lui/kmc@latest
+kmc update --check
+kmc update
+kmc channel set experimental
+kmc update
 ```
 
-After the CLI update, KMC detects existing project and global installations of the `kmc` skill and updates each one through the skills installer. The existing install scope, selected agents, and link/install layout are retained from the skill lock data. If the skill is not installed, the update skips it instead of changing the user's skill setup.
-
-or choose **Skip** to continue with the current version for that run.
+Downloads are verified against the release SHA-256 checksum and installed
+atomically. `kmc doctor` reports the active binary, platform, update channel,
+configuration directory, and any legacy npm installation it detects.
 
 ## Direct Commands
 
@@ -518,33 +526,26 @@ Clone the repo:
 ```sh
 git clone https://github.com/marius4lui/kmc.git
 cd kmc
-npm install
+go mod download
 ```
 
 Run locally:
 
 ```sh
-node ./bin/kmc.js
+go run ./cmd/kmc
 ```
 
-Link globally while developing:
+Build a local binary:
 
 ```sh
-npm link
-kmc
-```
-
-If your shell says the command exists but is not executable, make sure the bin file has execute permissions:
-
-```sh
-chmod 755 bin/kmc.js
-npm link
+go build -o ./dist/kmc ./cmd/kmc
+./dist/kmc --version
 ```
 
 ## Requirements
 
-- Node.js 18 or newer
 - A terminal with interactive prompt support
+- Go 1.24 or newer when building from source
 
 ## Notes
 

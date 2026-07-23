@@ -214,10 +214,10 @@
             <div class="steps">
               <div class="detected"><span>Detected system</span><strong id="detected">Linux / macOS</strong></div>
               <div class="step done"><span class="step-dot">✓</span><div class="step-name">System<span class="step-meta" id="system-meta">Linux detected</span></div></div>
-              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Node.js<span class="step-meta">v22.17 · compatible</span></div></div>
-              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Registry<span class="step-meta">package reachable</span></div></div>
+              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Platform<span class="step-meta">amd64 · supported</span></div></div>
+              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Release<span class="step-meta">stable channel</span></div></div>
               <div class="step done"><span class="step-dot">✓</span><div class="step-name">Target<span class="step-meta">user-local prefix</span></div></div>
-              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Install<span class="step-meta">npm global</span></div></div>
+              <div class="step done"><span class="step-dot">✓</span><div class="step-name">Install<span class="step-meta">native binary</span></div></div>
               <div class="step done"><span class="step-dot">✓</span><div class="step-name">Verify<span class="step-meta">kmc is ready</span></div></div>
             </div>
             <div class="terminal">
@@ -231,7 +231,7 @@
             </div>
           </div>
         </div>
-        <p class="hint">Requires Node.js 18+. Checks everything first, installs without sudo, then verifies the result.</p>
+        <p class="hint">No runtime dependencies. Downloads the native binary, verifies SHA-256, installs atomically, then checks the result.</p>
       </section>
 
       <section class="shell">
@@ -254,7 +254,7 @@
 
     <footer class="shell">
       <span>MIT licensed · built for terminal people</span>
-      <span><a href="https://www.npmjs.com/package/@marius4lui/kmc">npm</a> · <a href="https://github.com/marius4lui/kmc">source</a></span>
+      <span><a href="https://github.com/marius4lui/kmc/releases">releases</a> · <a href="https://github.com/marius4lui/kmc">source</a></span>
     </footer>
 
     <script>
@@ -264,14 +264,14 @@
           command: "curl -fsSL https://kmc.kmuc.app/install.sh | sh",
           output: `<span class="bright">[1/6] Detect system</span>        <span class="dim">$ uname -s</span>
       <span class="ok">✓</span> Linux detected
-<span class="bright">[2/6] Check Node.js and npm</span> <span class="dim">$ node --version &amp;&amp; npm --version</span>
-      <span class="ok">✓</span> Node.js v22.17.0 is supported
-<span class="bright">[3/6] Check package</span>       <span class="dim">$ npm view @marius4lui/kmc@latest version</span>
-      <span class="ok">✓</span> Package is available
-<span class="bright">[4/6] Choose target</span>       <span class="dim">$ npm config get prefix</span>
+<span class="bright">[2/6] Detect platform</span>      <span class="dim">$ uname -m</span>
+      <span class="ok">✓</span> linux/amd64 is supported
+<span class="bright">[3/6] Resolve release</span>      <span class="dim">$ channel stable</span>
+      <span class="ok">✓</span> Stable release selected
+<span class="bright">[4/6] Choose target</span>       <span class="dim">$ ~/.local/bin</span>
       <span class="ok">✓</span> Using ~/.local
-<span class="bright">[5/6] Install package</span>     <span class="dim">$ npm install --global …</span>
-      <span class="ok">✓</span> Package installed
+<span class="bright">[5/6] Verify and install</span>  <span class="dim">$ sha256 + atomic move</span>
+      <span class="ok">✓</span> Native binary installed
 <span class="bright">[6/6] Verify installation</span> <span class="dim">$ kmc --version</span>
       <span class="ok">✓ kmc is ready</span>`
         },
@@ -280,15 +280,15 @@
           command: "irm https://kmc.kmuc.app/install.ps1 | iex",
           output: `<span class="bright">[1/6] Detect system</span>        <span class="dim">&gt; $PSVersionTable.Platform</span>
       <span class="ok">+</span> Windows detected
-<span class="bright">[2/6] Check Node.js and npm</span> <span class="dim">&gt; node --version; npm --version</span>
-      <span class="ok">+</span> Node.js v22.17.0 is supported
-<span class="bright">[3/6] Check package</span>       <span class="dim">&gt; npm view @marius4lui/kmc@latest version</span>
-      <span class="ok">+</span> Package is available
-<span class="bright">[4/6] Choose target</span>       <span class="dim">&gt; npm config get prefix</span>
-      <span class="ok">+</span> Using user npm prefix
-<span class="bright">[5/6] Install package</span>     <span class="dim">&gt; npm install --global …</span>
-      <span class="ok">+</span> Package installed
-<span class="bright">[6/6] Verify installation</span> <span class="dim">&gt; kmc.cmd --version</span>
+<span class="bright">[2/6] Detect platform</span>      <span class="dim">&gt; Windows/amd64</span>
+      <span class="ok">+</span> Platform is supported
+<span class="bright">[3/6] Resolve release</span>      <span class="dim">&gt; channel stable</span>
+      <span class="ok">+</span> Stable release selected
+<span class="bright">[4/6] Choose target</span>       <span class="dim">&gt; LocalAppData</span>
+      <span class="ok">+</span> Using user-local prefix
+<span class="bright">[5/6] Verify and install</span>  <span class="dim">&gt; SHA-256 + atomic move</span>
+      <span class="ok">+</span> Native binary installed
+<span class="bright">[6/6] Verify installation</span> <span class="dim">&gt; kmc.exe --version</span>
       <span class="ok">+ kmc is ready</span>`
         }
       };
