@@ -89,6 +89,14 @@
         "cwd": {
           "type": "string"
         },
+        "groupId": {
+          "description": "Legacy group identifier. Grouped configurations infer this from the parent group.",
+          "type": "string"
+        },
+        "group": {
+          "description": "Legacy alias for groupId.",
+          "type": "string"
+        },
         "source": {
           "type": "string"
         },

@@ -123,6 +123,10 @@ function Install-Kmc {
         } else {
             Move-Item -LiteralPath $Staged -Destination $KmcCommand
         }
+        & $KmcCommand channel set $Channel | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            Stop-Installer "installed binary could not save the $Channel update channel"
+        }
         @{
             version = $ResolvedVersion
             channel = $Channel

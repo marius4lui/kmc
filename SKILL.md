@@ -1,142 +1,162 @@
 ---
 name: kmc
-description: Use the kmc CLI to discover, import, validate, and run project commands from kmc.json and trusted YAML workflows in .kmc/scripts.yml. Use when a user wants an agent to work with a repository's command center, reusable commands, local workflows, or install the kmc skill/CLI from github.com/marius4lui/kmc.
+description: Use the native KMC CLI to inspect, validate, import, and run project commands from kmc.json or trusted YAML workflows in .kmc/scripts.yml.
 ---
 
-# kmc
+# KMC
 
-Use `kmc` as the project command center when a repository has or should have a `kmc.json` or `.kmc/scripts.yml`.
+Use KMC as the repository's command center when a project contains `kmc.json`
+or `.kmc/scripts.yml`, or when the user asks to create reusable project
+commands.
 
-## When to use
+KMC 2 is a native Go binary. It is currently beta software; use the beta
+installer channel until a stable KMC 2 release is published.
 
-- The user mentions `kmc`, `kmc.json`, a command center, reusable project commands, or wants agents to run known project workflows.
-- A repo has a `kmc.json` and you need to inspect or run its saved commands.
-- A repo has `.kmc/scripts.yml` and the user wants to run or maintain its local YAML workflows.
-- A user asks to install this skill or make it available from an agent skill picker.
-- A user wants common commands imported from `package.json`, `Makefile`, `pubspec.yaml`, or Docker Compose files.
-- A user wants stable local HTTPS dev URLs for a Next.js, Vite, NestJS, or Express app.
+## Start safely
 
-## Instructions
-
-1. Check whether the CLI is available:
+1. Check whether KMC is available:
 
    ```sh
    kmc --version
    ```
 
-   If it is missing, prefer:
+2. If it is missing, install the current beta:
 
    ```sh
    # Linux and macOS
-   curl -fsSL https://kmc.kmuc.app/install.sh | sh
+   curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel beta
 
    # Windows PowerShell
-   irm https://kmc.kmuc.app/install.ps1 | iex
-
+   & ([scriptblock]::Create((irm https://kmc.kmuc.app/install.ps1))) -Channel beta
    ```
 
-2. Inspect the current repository before changing commands or workflows:
+3. Inspect the repository before changing or running anything:
 
    ```sh
    test -f kmc.json && kmc validate
    test -f .kmc/scripts.yml && kmc scripts validate
    ```
 
-   Also inspect likely command sources when present: `package.json`, `Makefile`, `pubspec.yaml`, `docker-compose.yml`, and `compose.yml`.
+   Also inspect any detected command sources that are relevant:
+   `package.json`, `Makefile`, `pubspec.yaml`, `docker-compose.yml`, and
+   `compose.yml`.
 
-3. Prefer non-interactive commands in automation:
+## Saved commands
 
-   ```sh
-   kmc validate
-   kmc import
-   kmc run <command-id>
-   kmc scripts list
-   kmc scripts validate
-   kmc run <script> --dry-run
-   ```
+Prefer stable, descriptive ids such as `development.test`,
+`database.migrate`, or `deployment.release`. Keep each `cwd` relative to the
+project directory where KMC is started.
 
-   Use the interactive menu only when the user explicitly wants manual selection:
+Use direct commands for automated work:
 
-   ```sh
-   kmc
-   kmc add
-   kmc edit <command-id>
-   kmc settings
-   ```
+```sh
+kmc validate
+kmc import
+kmc run <command-id>
+```
 
-4. When adding or editing `kmc.json`, keep commands grouped. Use stable command ids like `npm.dev`, `deployment.production`, or `manual.release`. Keep `cwd` relative to the directory where `kmc` is run.
+Use interactive flows only when the user wants to choose or edit manually:
 
-5. KMC Scripts are YAML workflows registered in `.kmc/scripts.yml`. Use `kmc scripts init` to create a safe starter layout:
+```sh
+kmc
+kmc add
+kmc edit <command-id>
+kmc settings
+```
 
-   ```text
-   .kmc/
-   ├── scripts.yml
-   └── scripts/
-       └── test.yml
-   ```
+KMC reads both the current grouped `kmc.json` format and the legacy flat
+`commands` format. Do not rewrite user-owned configuration merely to modernize
+its shape; KMC normalizes it when it next writes the file.
 
-   A workflow runs its steps sequentially. Version 1 supports `name`, `run`, `shell`, `cwd`, `env`, `timeout`, `retries`, and `continue_on_error`. Keep all registry and workflow paths within the project root. Use `kmc scripts validate` after changes; unknown schema fields are intentionally rejected.
+## KMC Scripts
 
-6. Before executing a YAML workflow, inspect it and its registry. These files can run arbitrary local commands. In non-interactive automation, KMC blocks untrusted repositories. Trust only after review:
+KMC Scripts are registered in `.kmc/scripts.yml`. Initialize missing files with:
 
-   ```sh
-   kmc trust
-   kmc trust status
-   kmc untrust
-   ```
+```sh
+kmc scripts init
+```
 
-   Trust is invalidated when KMC workflow files change. Do not use `--yes` unless the workflow contents were reviewed in the current task. As with saved commands, request explicit user confirmation before commands that deploy, publish, delete data, rotate secrets, or make other external changes.
+The version 1 workflow schema supports sequential steps with `name`, `run`,
+`shell`, `cwd`, `env`, `timeout`, `retries`, and `continue_on_error`. Unknown
+fields are rejected. Registry and workflow paths must remain inside the project
+root.
 
-7. Validate after any change:
+Useful non-interactive commands:
 
-   ```sh
-   kmc validate
-   kmc scripts validate
-   ```
+```sh
+kmc scripts list
+kmc scripts validate
+kmc run <script-id> --dry-run
+kmc run <script-id> --step <name-or-index>
+kmc run <script-id> --env KEY=value
+```
 
-8. For local web app URLs, use the interactive **Dev URLs** menu:
+Workflow files execute local shell commands. Read the registry and every
+referenced workflow before trusting them:
 
-   ```sh
-   kmc
-   ```
+```sh
+kmc trust status
+kmc trust
+kmc untrust
+```
 
-   In monorepos, choose **Dev URLs** -> **Select detected project**. `kmc` searches upward for workspace roots such as `pnpm-workspace.yaml`, `package.json` workspaces, `turbo.json`, `nx.json`, and `lerna.json`, then scans nested app packages.
+Trust is bound to the canonical project path and a SHA-256 fingerprint of all
+active workflow files. Any workflow edit invalidates it. Use `--yes` only after
+reviewing the current fingerprint in this task.
 
-   If Caddy is missing, install it first:
+Never run a saved command or workflow that can deploy, publish, delete data,
+rotate secrets, purchase resources, or change external systems without explicit
+user approval. Tell the user which command or script id will run before
+executing it.
 
-   ```sh
-   sudo apt install caddy
-   ```
+## Dev URLs
 
-   If Caddy is installed but not running, start it:
+Dev URLs support Next.js, Vite, NestJS, and Express projects, including nested
+monorepo apps:
 
-   ```sh
-   caddy start --config ~/.config/kmc/Caddyfile
-   ```
+```sh
+kmc dev detect
+kmc dev configure [project]
+kmc dev start
+```
 
-   If the browser shows `net::ERR_CERT_AUTHORITY_INVALID`, trust the local Caddy CA:
+The interactive **Dev URLs** screen also supports project selection, Caddy
+reloads, and local CA trust. KMC stores project-local Dev URL state in
+`.kmc/dev.json` and generates the shared Caddy configuration in the user's KMC
+configuration directory.
 
-   ```sh
-   caddy trust
-   ```
+If Caddy is missing or not running:
 
-9. When running a saved command or workflow, tell the user which id you are about to run and use:
+```sh
+sudo apt install caddy
+caddy start --config ~/.config/kmc/Caddyfile
+```
 
-   ```sh
-   kmc run <command-id>
-   ```
+If the browser rejects the local certificate:
 
-   For a workflow step, use the script id (for example `kmc run checks`) and consider `--dry-run` first. If a command can deploy, publish, delete data, rotate secrets, or otherwise make external changes, get explicit user confirmation before running it.
+```sh
+caddy trust
+```
+
+## Validate changes
+
+After changing project commands or workflows, run every applicable validator:
+
+```sh
+test -f kmc.json && kmc validate
+test -f .kmc/scripts.yml && kmc scripts validate
+```
+
+Use `kmc run <script-id> --dry-run` before executing a changed workflow.
 
 ## Install this skill
 
-The skill is installed from the same GitHub repository as the CLI:
+Install the agent skill from this repository with:
 
 ```sh
 npx skills add marius4lui/kmc
 ```
 
-If the host UI has an **Install skill** action, it should execute the same command for this repository. After installation, agents can invoke this skill as `$kmc`.
-
-The native CLI and this skill have independent lifecycles. Update the CLI with
-`kmc update`; update an installed skill with the host's skill installer.
+The external skill installer currently uses `npx`; this does not install the
+legacy Node.js KMC CLI. Update the native CLI with `kmc update` and update the
+skill through the agent host's skill management flow.

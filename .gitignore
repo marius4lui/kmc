@@ -1,6 +1,11 @@
-node_modules/
-npm-debug.log*
-*.tgz
-dist/
+# Go build and test output
+/dist/
+/kmc
+/coverage.out
+
+# User-local KMC state
+/.kmc/settings.json
+/.kmc/dev.json
+
+# Operating system files
 .DS_Store
-.kmc/

@@ -200,6 +200,8 @@ install_binary() {
   cp "$tmp_dir/unpacked/kmc" "$staged"
   chmod 755 "$staged"
   mv -f "$staged" "$BINARY"
+  "$BINARY" channel set "$CHANNEL" >/dev/null 2>&1 ||
+    fail "installed binary could not save the $CHANNEL update channel"
   {
     printf 'VERSION=%s\n' "$VERSION"
     printf 'CHANNEL=%s\n' "$CHANNEL"

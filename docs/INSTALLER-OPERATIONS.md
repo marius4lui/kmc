@@ -21,6 +21,10 @@ part of the runtime or release process.
 The release tag is the source of truth. Final tags use `vX.Y.Z`; beta
 tags use a SemVer prerelease such as `v2.1.0-rc.1`.
 
+KMC 2 currently has beta releases only. Public installation instructions must
+pass `--channel beta` or `-Channel beta` until the first final KMC 2 release is
+published. Do not present the stable channel as currently available.
+
 ## Release assets
 
 GoReleaser creates archives for Linux, macOS, and Windows on amd64 and arm64:
@@ -72,6 +76,9 @@ curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- doctor
 curl -fsSL https://kmc.kmuc.app/install.sh | sh -s -- --channel beta
 kmc update --check
 ```
+
+For a beta install, confirm `kmc channel` prints `beta`; the installer is
+responsible for persisting its selected channel into the native CLI settings.
 
 ## Incident and rollback
 
