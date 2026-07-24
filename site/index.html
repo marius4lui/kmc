@@ -104,7 +104,7 @@
         background: rgba(255,255,255,.025);
       }
 
-      .hero { padding: clamp(62px, 9vw, 116px) 0 78px; text-align: center; }
+      .hero { padding: clamp(68px, 10vw, 132px) 0 92px; text-align: center; }
       .eyebrow {
         margin: 0 0 20px;
         font: 700 .72rem/1.4 var(--mono);
@@ -175,6 +175,10 @@
         background: var(--green);
       }
       .button:hover { transform: translateY(-1px); }
+
+      .hero-proof { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px 19px; margin: -21px 0 39px; color: #6f8378; font: 650 .68rem/1.5 var(--mono); }
+      .hero-proof span { display: inline-flex; align-items: center; gap: 6px; }
+      .hero-proof span::before { content: "✓"; color: var(--green); }
 
       .installer {
         position: relative;
@@ -338,6 +342,42 @@
       .section-title { margin: 0 0 15px; font-size: clamp(2.25rem, 5vw, 4rem); line-height: 1.02; letter-spacing: -.058em; }
       .section-copy { max-width: 630px; margin: 0; color: var(--muted); line-height: 1.65; }
 
+      .command-theatre { padding: 0 0 116px; }
+      .command-theatre .section-heading { margin-bottom: 31px; }
+      .theatre { display: grid; grid-template-columns: minmax(230px, .72fr) minmax(0, 1.5fr); overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(135deg, rgba(18, 35, 28, .88), rgba(7, 13, 10, .92)); box-shadow: 0 30px 90px rgba(0,0,0,.25); }
+      .theatre-side { padding: 28px 21px; border-right: 1px solid var(--line); background: rgba(0,0,0,.11); }
+      .theatre-label { margin: 0 0 20px; color: #687d71; font: 700 .62rem/1 var(--mono); letter-spacing: .13em; text-transform: uppercase; }
+      .theatre-nav { display: grid; gap: 4px; }
+      .theatre-nav span { display: flex; align-items: center; gap: 9px; padding: 10px; border-radius: 8px; color: #9caf9f; font: 650 .72rem/1.2 var(--mono); }
+      .theatre-nav span::before { content: "◇"; color: #668173; }
+      .theatre-nav span.active { color: var(--green); background: rgba(130,247,174,.09); }
+      .theatre-nav span.active::before { content: "▣"; color: var(--green); }
+      .theatre-main { padding: 27px; }
+      .theatre-top { display: flex; justify-content: space-between; gap: 15px; align-items: flex-start; margin-bottom: 21px; }
+      .theatre-top small { display: block; margin-bottom: 6px; color: #697d72; font: 650 .61rem/1 var(--mono); text-transform: uppercase; letter-spacing: .11em; }
+      .theatre-top strong { font-size: 1rem; letter-spacing: -.02em; }
+      .run-badge { padding: 8px 10px; border: 1px solid rgba(130,247,174,.3); border-radius: 7px; color: var(--green); background: rgba(130,247,174,.07); font: 700 .63rem/1 var(--mono); }
+      .run-badge::before { content: "▶"; margin-right: 5px; font-size: .55rem; }
+      .task-list { display: grid; gap: 7px; }
+      .task { display: grid; grid-template-columns: 21px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 11px; border: 1px solid transparent; border-radius: 9px; background: rgba(255,255,255,.025); }
+      .task.selected { border-color: rgba(118,185,255,.26); background: rgba(118,185,255,.055); }
+      .task-check { display: grid; width: 20px; height: 20px; place-items: center; border: 1px solid rgba(130,247,174,.35); border-radius: 50%; color: var(--green); font: 700 .6rem/1 var(--mono); }
+      .task b { display: block; overflow: hidden; font: 650 .72rem/1.2 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+      .task small { display: block; margin-top: 3px; overflow: hidden; color: #6e8277; font: 500 .6rem/1.2 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+      .task time { color: #789084; font: 600 .6rem/1 var(--mono); }
+      .theatre-output { margin: 16px 0 0; padding: 14px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: #07100c; color: #789084; font: 500 .65rem/1.7 var(--mono); white-space: pre-wrap; }
+      .theatre-output .command { color: var(--blue); }
+      .theatre-output .pass { color: var(--green); }
+
+      .principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 17px; padding: 0 0 116px; }
+      .principle { position: relative; min-height: 253px; overflow: hidden; padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface-soft); }
+      .principle::after { content: ""; position: absolute; width: 220px; height: 220px; right: -74px; bottom: -98px; border-radius: 50%; background: radial-gradient(circle, rgba(130,247,174,.16), transparent 68%); }
+      .principle:nth-child(2)::after { background: radial-gradient(circle, rgba(118,185,255,.15), transparent 68%); }
+      .principle:nth-child(3)::after { background: radial-gradient(circle, rgba(255,203,116,.13), transparent 68%); }
+      .principle-id { color: var(--green); font: 700 .66rem/1 var(--mono); letter-spacing: .1em; }
+      .principle h3 { position: relative; z-index: 1; max-width: 250px; margin: 39px 0 11px; font-size: 1.3rem; line-height: 1.05; letter-spacing: -.035em; }
+      .principle p { position: relative; z-index: 1; max-width: 260px; margin: 0; color: var(--muted); font-size: .85rem; line-height: 1.65; }
+
       .workflow { display: grid; grid-template-columns: .8fr 1.2fr; overflow: hidden; }
       .workflow-copy { padding: clamp(28px, 5vw, 54px); }
       .workflow-copy h3 { margin: 13px 0 15px; font-size: 1.65rem; letter-spacing: -.035em; }
@@ -453,6 +493,14 @@
         .copy { min-width: 57px; min-height: 33px; font-size: .63rem; }
         .installer-note { max-width: 330px; line-height: 1.5; }
         .features { padding: 10px 0 84px; }
+        .hero-proof { margin-bottom: 28px; font-size: .61rem; }
+        .command-theatre { padding-bottom: 84px; }
+        .theatre { grid-template-columns: 1fr; }
+        .theatre-side { display: none; }
+        .theatre-main { padding: 18px; }
+        .theatre-output { font-size: .58rem; }
+        .principles { grid-template-columns: 1fr; gap: 12px; padding-bottom: 84px; }
+        .principle { min-height: 214px; padding: 23px; }
         .grid, .platform-row { grid-template-columns: 1fr; gap: 12px; }
         .card { min-height: 0; padding: 22px; }
         .card h2 { margin-top: 27px; }
@@ -497,12 +545,13 @@
     <main>
       <section class="hero shell">
         <p class="eyebrow">Native project command center <span class="beta-chip">KMC 2 beta</span></p>
-        <h1>Every project. One command.</h1>
-        <p class="lead">Save project commands, run trusted YAML workflows, and give every repository one clean terminal interface — without a runtime dependency.</p>
+        <h1>Make the terminal feel intentional.</h1>
+        <p class="lead">Turn the commands hiding in your repository into one calm, native command center. Know what runs, trust what changes, and give your team a front door to real work.</p>
         <div class="actions">
-          <a class="button primary" href="#install">Install the beta</a>
-          <a class="button" href="https://github.com/marius4lui/kmc/blob/main/docs/README.md">Read the docs</a>
+          <a class="button primary" href="#install">Get KMC beta →</a>
+          <a class="button" href="#command-center">See the command center</a>
         </div>
+        <div class="hero-proof"><span>Native Go binary</span><span>SHA-256 verified releases</span><span>Linux · macOS · Windows</span></div>
 
         <section class="installer" id="install" aria-label="KMC beta installer">
           <div class="installer-bar">
@@ -546,6 +595,32 @@
         </div>
       </section>
 
+      <section class="command-theatre shell" id="command-center">
+        <div class="section-heading">
+          <p class="eyebrow">A terminal workflow, designed</p>
+          <h2 class="section-title">Less hunting. More shipping.</h2>
+          <p class="section-copy">Commands are grouped, the next correct action is obvious, and the outcome is visible before you go back to your editor.</p>
+        </div>
+        <section class="theatre" aria-label="Example KMC command center">
+          <aside class="theatre-side">
+            <p class="theatre-label">Command center</p>
+            <div class="theatre-nav"><span class="active">Development</span><span>Quality checks</span><span>Database</span><span>Deployments</span><span>KMC Scripts</span></div>
+          </aside>
+          <div class="theatre-main">
+            <div class="theatre-top"><div><small>Development</small><strong>Run a known-good command</strong></div><span class="run-badge">Run selected</span></div>
+            <div class="task-list">
+              <div class="task selected"><span class="task-check">✓</span><span><b>development.test</b><small>go test ./...</small></span><time>12.4s</time></div>
+              <div class="task"><span class="task-check">✓</span><span><b>development.api</b><small>go run ./cmd/api</small></span><time>ready</time></div>
+              <div class="task"><span class="task-check">✓</span><span><b>development.web</b><small>pnpm dev</small></span><time>ready</time></div>
+            </div>
+            <pre class="theatre-output"><span class="command">$ kmc run development.test</span>
+<span class="pass">✓</span> github.com/acme/atlas/internal/api   ok
+<span class="pass">✓</span> github.com/acme/atlas/internal/auth  ok
+<span class="pass">✓</span> all checks passed</pre>
+          </div>
+        </section>
+      </section>
+
       <section class="section shell">
         <div class="section-heading">
           <p class="eyebrow">Reviewable automation</p>
@@ -574,6 +649,12 @@
     <span class="yaml-key">retries:</span> <span class="yaml-value">1</span></pre>
           </section>
         </div>
+      </section>
+
+      <section class="principles shell" aria-label="KMC principles">
+        <article class="principle"><span class="principle-id">01 / VISIBLE</span><h3>Turn tribal knowledge into project knowledge.</h3><p>Keep the commands worth remembering in a file your team can review, improve, and share.</p></article>
+        <article class="principle"><span class="principle-id">02 / TRUSTED</span><h3>Review automation before it gets authority.</h3><p>Workflow trust is bound to the repository and its current fingerprint, not a vague memory of what was there.</p></article>
+        <article class="principle"><span class="principle-id">03 / NATIVE</span><h3>Install one binary. Keep moving.</h3><p>No Node.js runtime for KMC itself. Just the CLI, your project, and the commands you already use.</p></article>
       </section>
 
       <section class="section shell">
