@@ -51,7 +51,8 @@ function Resolve-KmcVersion {
     if ($Channel -eq "stable") {
         $Release = Invoke-RestMethod -Headers $Headers -Uri "$ApiUrl/repos/$Repository/releases/latest"
     } else {
-        $Release = Invoke-RestMethod -Headers $Headers -Uri "$ApiUrl/repos/$Repository/releases?per_page=100" |
+        $Releases = Invoke-RestMethod -Headers $Headers -Uri "$ApiUrl/repos/$Repository/releases?per_page=100"
+        $Release = $Releases |
             Where-Object { $_.prerelease -and -not $_.draft } |
             Select-Object -First 1
     }
