@@ -44,6 +44,10 @@ kmc edit development.test --command "go test -race ./..."
 kmc delete development.test
 ```
 
+Omitted edit options preserve their current values. Use `--cwd .` to reset the
+working directory, `--group manual` to move a command to the manual group, or
+`--description ""` to clear its description.
+
 ## `kmc.json`
 
 The project command center lives in `kmc.json` at the directory where KMC is

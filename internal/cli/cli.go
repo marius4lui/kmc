@@ -413,6 +413,7 @@ func importCommands() error {
 
 type commandFields struct {
 	name, command, description, cwd, group string
+	descriptionSet, cwdSet, groupSet       bool
 }
 
 func parseCommandFields(args []string) (commandFields, []string, error) {
@@ -435,10 +436,13 @@ func parseCommandFields(args []string) (commandFields, []string, error) {
 			fields.command = value
 		case "--description":
 			fields.description = value
+			fields.descriptionSet = true
 		case "--cwd":
 			fields.cwd = value
+			fields.cwdSet = true
 		case "--group":
 			fields.group = value
+			fields.groupSet = true
 		default:
 			return fields, positional, fmt.Errorf("unknown option %q", args[index-1])
 		}
@@ -496,13 +500,13 @@ func upsertCommand(existingID string, fields commandFields) error {
 	if fields.command == "" {
 		fields.command = existing.Command
 	}
-	if fields.description == "" {
+	if !fields.descriptionSet && fields.description == "" {
 		fields.description = existing.Description
 	}
-	if fields.cwd == "." && existing.CWD != "" {
+	if !fields.cwdSet && fields.cwd == "." && existing.CWD != "" {
 		fields.cwd = existing.CWD
 	}
-	if fields.group == "manual" && existing.GroupID != "" {
+	if !fields.groupSet && fields.group == "manual" && existing.GroupID != "" {
 		fields.group = existing.GroupID
 	}
 	next := config.Command{Name: fields.name, Command: fields.command, Description: fields.description, CWD: fields.cwd, GroupID: fields.group, Group: fields.group}

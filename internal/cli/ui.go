@@ -449,7 +449,10 @@ func commandFormUI(root, existingID string) error {
 	if err != nil {
 		return err
 	}
-	fields := commandFields{name: name, command: commandText, description: description, cwd: cwd, group: groupID}
+	fields := commandFields{
+		name: name, command: commandText, description: description, cwd: cwd, group: groupID,
+		descriptionSet: true, cwdSet: true, groupSet: true,
+	}
 	if err := withWorkingDir(root, func() error { return upsertCommand(existingID, fields) }); err != nil {
 		return err
 	}
