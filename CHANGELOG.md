@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed shell installer PATH entries for installation prefixes containing dollar
+  signs, quotes, and other literal shell characters.
 - Fixed native update ordering for numeric prerelease identifiers and build
   metadata, including stable versions with hyphens in build metadata.
 - Reorganized the GitHub documentation into focused installation, command,
