@@ -47,6 +47,26 @@ func TestMakefileCompatibility(t *testing.T) {
 	}
 }
 
+func TestImportWithoutSourcesRemainsReadable(t *testing.T) {
+	root := t.TempDir()
+	for attempt := 0; attempt < 2; attempt++ {
+		current, err := config.Read(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := Import(root, current, nil); err != nil {
+			t.Fatal(err)
+		}
+		read, err := config.Read(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if result := config.Validate(read, config.DefaultSettings()); !result.OK || result.CommandCount != 0 {
+			t.Fatalf("empty import must validate: %#v", result)
+		}
+	}
+}
+
 func TestDockerCompatibility(t *testing.T) {
 	commands := ParseDockerCompose("services:\n  api:\n    image: api\n   ignored:\n  worker: {}\n")
 	if len(commands) != 6 || commands[5].Name != "restart-api" {
