@@ -16,7 +16,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -104,13 +103,15 @@ func Resolve(releases []Release, channel, version string) (*Release, error) {
 		if release.Draft {
 			continue
 		}
+		// Build metadata does not determine whether a version is a prerelease.
+		version, _, _ := strings.Cut(normalizeVersion(release.TagName), "+")
 		switch channel {
 		case Stable:
-			if release.Prerelease || strings.Contains(normalizeVersion(release.TagName), "-") {
+			if release.Prerelease || strings.Contains(version, "-") {
 				continue
 			}
 		case Beta, Experimental:
-			if !release.Prerelease && !strings.Contains(normalizeVersion(release.TagName), "-") {
+			if !release.Prerelease && !strings.Contains(version, "-") {
 				continue
 			}
 		case Nightly:
@@ -133,47 +134,6 @@ func Resolve(releases []Release, channel, version string) (*Release, error) {
 
 func normalizeVersion(value string) string {
 	return strings.TrimPrefix(strings.TrimSpace(value), "v")
-}
-
-func CompareVersions(left, right string) int {
-	parse := func(value string) ([3]int, string) {
-		var numbers [3]int
-		parts := strings.SplitN(normalizeVersion(value), "-", 2)
-		for index, raw := range strings.Split(parts[0], ".") {
-			if index >= len(numbers) {
-				break
-			}
-			numbers[index], _ = strconv.Atoi(raw)
-		}
-		suffix := ""
-		if len(parts) == 2 {
-			suffix = parts[1]
-		}
-		return numbers, suffix
-	}
-	lv, ls := parse(left)
-	rv, rs := parse(right)
-	for index := 0; index < 3; index++ {
-		if lv[index] > rv[index] {
-			return 1
-		}
-		if lv[index] < rv[index] {
-			return -1
-		}
-	}
-	if ls == rs {
-		return 0
-	}
-	if ls == "" {
-		return 1
-	}
-	if rs == "" {
-		return -1
-	}
-	if ls > rs {
-		return 1
-	}
-	return -1
 }
 
 func Platform(goos, goarch string) (string, string, error) {

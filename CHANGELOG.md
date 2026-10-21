@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed native update ordering for numeric prerelease identifiers and build
+  metadata, including stable versions with hyphens in build metadata.
 - Reorganized the GitHub documentation into focused installation, command,
   workflow, Dev URL, migration, contributing, and security guides.
 - Reworked the agent skill for the native Go CLI and current beta lifecycle.
