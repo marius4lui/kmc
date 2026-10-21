@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fixed command editing to honor explicit resets to the project root, the manual
+  group, and an empty description while preserving omitted CLI fields.
+
 - Fixed shell installer PATH entries for installation prefixes containing dollar
   signs, quotes, and other literal shell characters.
 - Fixed native update ordering for numeric prerelease identifiers and build
