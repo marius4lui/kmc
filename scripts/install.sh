@@ -143,9 +143,12 @@ resolve_version() {
 
 add_to_path() {
   case ":${PATH:-}:" in *":$BIN_DIR:"*) return ;; esac
+  # Keep the directory literal, but expand PATH when the profile is read.
+  quoted_bin_dir="$(printf '%s' "$BIN_DIR" | sed "s/'/'\\\\''/g")"
+  path_line="export PATH='$quoted_bin_dir':\"\$PATH\""
   if [ "$MODIFY_PATH" -eq 0 ]; then
     say "Add this to your shell profile:"
-    say "  export PATH=\"$BIN_DIR:\$PATH\""
+    say "  $path_line"
     return
   fi
   shell_name="$(basename "${SHELL:-sh}")"
@@ -154,7 +157,6 @@ add_to_path() {
     bash) profile="$HOME/.bashrc" ;;
     *) profile="$HOME/.profile" ;;
   esac
-  path_line="export PATH=\"$BIN_DIR:\$PATH\""
   if ! { [ -f "$profile" ] && grep -F "$path_line" "$profile" >/dev/null 2>&1; }; then
     printf '\n# Added by the kmc installer\n%s\n' "$path_line" >>"$profile"
     say "Updated $profile"
