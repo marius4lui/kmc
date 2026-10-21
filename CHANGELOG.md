@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fixed empty command imports and configuration writes to retain a readable
+  `groups: []` array instead of producing an invalid configuration.
+
 - Fixed command editing to honor explicit resets to the project root, the manual
   group, and an empty description while preserving omitted CLI fields.
 

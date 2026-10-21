@@ -4,7 +4,7 @@ import "fmt"
 
 type Config struct {
 	Schema   string    `json:"$schema,omitempty"`
-	Groups   []Group   `json:"groups,omitempty"`
+	Groups   []Group   `json:"groups"`
 	Commands []Command `json:"commands,omitempty"`
 }
 
